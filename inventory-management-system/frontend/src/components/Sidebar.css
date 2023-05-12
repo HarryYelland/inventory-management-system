@@ -1,0 +1,100 @@
+.sidebar-body {
+  background-color: #f7f7f7;
+  width: 21vh;
+  height: 100vh;
+  border-right-color: #808080;
+  border-right-width: 6px;
+  border-right-style: solid;
+}
+
+h2 {
+  color: #404040;
+  width: 5vh;
+}
+
+.menu-item {
+  position: relative;
+  color: #ffffff;
+  padding: 20px;
+  background-color: #24a0ed;
+  text-decoration: none;
+  margin: 5px;
+  border-radius: 12px;
+  display: inline;
+  align-items: center;
+  text-align: center;
+  width: 80vw;
+  cursor: pointer;
+  min-height: 6vh;
+  font-size: small;
+}
+
+.menu-item:hover {
+  background-color: #47aeed;
+  transition: background-color 100ms linear;
+  animation: wavesblue 0.4s;
+}
+
+.menu-item-boundbox {
+  position: relative;
+  padding-bottom: 25px;
+  padding-top: 20px;
+  padding-right: 0.1vw;
+  text-align: center;
+  overflow: auto;
+  margin: 0vh, 1vh, 0vh, 0vh;
+  min-height: 6vh;
+  width: 120%;
+}
+
+.username {
+  color: #404040;
+  font-size: 20px;
+  text-align: center;
+  align-items: center;
+  padding-left: 4.2vh;
+}
+
+.logout {
+  background-color: #ff5c5c;
+}
+
+.logout:hover {
+  background-color: #fa4b4b;
+  transition: background-color 100ms linear;
+  animation: wavesred 0.4s;
+}
+
+.settings-icon {
+  float: right;
+  padding-top: 3.8vh;
+  padding-right: 1.5vw;
+  width:2vw;
+  height: 2vw;
+  cursor: pointer;
+  
+}
+
+@keyframes wavesblue {
+  0% {
+    box-shadow: 0 0 0 0 rgba(11, 127, 171, 1);
+  }
+  80% {
+    box-shadow: 0 0 0 2px rgba(11, 127, 171, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(11, 127, 171, 0);
+  }
+}
+
+@keyframes wavesred {
+  0% {
+    box-shadow: 0 0 0 0 rgba(250, 75, 75, 1);
+  }
+  80% {
+    box-shadow: 0 0 0 2px rgba(250, 75, 75, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(250, 75, 75, 0);
+  }
+}
