@@ -8,41 +8,15 @@ const { isObject } = require("util");
 app.use(express.json());
 app.use(cors());
 
-function generateSalt(){
-  var numGen = Math.floor(Math.random() * 126);
-  //console.log("num generated " + numGen);
-  var salt = String.fromCharCode(numGen);
-  //console.log(salt);
-  return salt;
-}
+const THIS_PORT = 3001;
+const FRONTEND_ADDRESS = 'https://localhost:3000';
 
-function getSalt(id){
-  var salt = "";
-  db.query(
-    "SELECT Salt FROM Staff WHERE Staff_ID = ?;",
-    [id], 
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        res.send({ err: err });
-      }
-      console.log(result);
-      salt = result;
-    }
-  );
-  return salt;
-}
 
-function generatePepper(){
-  var numGen = Math.floor(Math.random() * 126);
-  //console.log("num generated " + numGen);
-  var pepper = String.fromCharCode(numGen);
-  return pepper;
-}
+//hash salt and pepper here
 
-function hash(){}
+// anti-sqli 
 
-function checkHash(){}
+// anti-css
 
 
 //list of chars taken from https://www.folkstalk.com/tech/avoid-sql-injection-in-password-field-with-code-examples/
@@ -134,18 +108,21 @@ function sqlInject(data) {
 
 
 app.post("/register", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const username = req.body.username;
   const password = req.body.password;
   console.log(username);
 });
 
 app.post("/login", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const username = req.body.username;
   const password = req.body.password;
   console.log(username);
 });
 
 app.post("/getStockItems", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
     "SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID;",
     (err, result) => {
@@ -160,6 +137,7 @@ app.post("/getStockItems", (req, res) => {
 });
 
 app.post("/getCategory", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const category_id = req.body.category_id;
   db.query(
     "SELECT Category_Name FROM Product_Categories WHERE category_id = ?;",
@@ -176,6 +154,7 @@ app.post("/getCategory", (req, res) => {
 });
 
 app.post("/getCategories", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
     "SELECT Category_Name FROM Product_Categories WHERE isObsolete = 0;",
     (err, result) => {
@@ -190,6 +169,7 @@ app.post("/getCategories", (req, res) => {
 });
 
 app.post("/getSalesSKUs", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
     "SELECT Product_Name FROM Product WHERE isObsolete = 0;",
     (err, result) => {
@@ -204,6 +184,7 @@ app.post("/getSalesSKUs", (req, res) => {
 });
 
 app.post("/addProducts", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const product_name = req.body.product_name;
   const product_category = req.body.category;
   const product_retail_price = req.body.retail_price;
@@ -269,6 +250,7 @@ app.post("/addProducts", (req, res) => {
 });
 
 app.post("/getProduct", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const sku = req.body.sku;
   if (sku == -1) {
     console.log("Error with sku");
@@ -285,6 +267,7 @@ app.post("/getProduct", (req, res) => {
 });
 
 app.post("/addCategory", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const category_name = req.body.category_name;
   console.log(req.body.obsolete);
   var obsolete = 0;
@@ -307,6 +290,7 @@ app.post("/addCategory", (req, res) => {
 });
 
 app.post("/editProduct", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const sku = req.body.sku;
   const product_name = req.body.product_name;
   const category = req.body.category;
@@ -360,6 +344,7 @@ app.post("/editProduct", (req, res) => {
 });
 
 app.post("/getPurchaseHistory", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
     "SELECT Purchase_Transactions.PTID, Purchase_Transactions.Order_Date, Purchase_Transactions.Delivery_Date, Staff.Username, SUM(Purchase_Orders.Qty * Product.Cost_Price) AS Value FROM Purchase_Transactions LEFT JOIN Purchase_Orders ON Purchase_Transactions.PTID = Purchase_Orders.PTID LEFT JOIN Staff ON Purchase_Transactions.Staff_ID = Staff.Staff_ID LEFT JOIN Product ON Product.SKU = Purchase_Orders.SKU GROUP BY Purchase_Transactions.PTID;",
     (err, result) => {
@@ -375,6 +360,7 @@ app.post("/getPurchaseHistory", (req, res) => {
 });
 
 app.post("/getSalesHistory", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
     "SELECT Sales_Transactions.STID, Sales_Transactions.Transaction_Date, Staff.Username, SUM(Sales_Orders.Qty * Product.Retail_Price) AS Value FROM Sales_Transactions LEFT JOIN Sales_Orders ON Sales_Transactions.STID = Sales_Orders.STID LEFT JOIN Staff ON Sales_Transactions.Staff_ID = Staff.Staff_ID LEFT JOIN Product ON Product.SKU = Sales_Orders.SKU GROUP BY Sales_Transactions.STID;",
     (err, result) => {
@@ -390,6 +376,7 @@ app.post("/getSalesHistory", (req, res) => {
 });
 
 app.post("/addSalesOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const staff_ID = req.body.Staff_ID;
   db.query(
     "INSERT INTO Sales_Transactions (Staff_ID) VALUES (?);",
@@ -407,6 +394,7 @@ app.post("/addSalesOrder", (req, res) => {
 });
 
 app.post("/getSalesOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const STID = req.body.STID;
   db.query(
     "SELECT Sales_Orders.SOID, Sales_Orders.SKU, Product.Product_Name, Sales_Orders.Qty, Product.Retail_Price, Sales_Orders.Discount, SUM(Sales_Orders.Qty * Product.Retail_Price * (100 - Sales_Orders.Discount) /100) AS Value FROM Sales_Orders LEFT JOIN Product ON Sales_Orders.SKU = Product.SKU WHERE STID = ? GROUP BY SKU;",
@@ -424,6 +412,7 @@ app.post("/getSalesOrder", (req, res) => {
 });
 
 app.post("/addSalesOrderItem", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const product_name = req.body.product_name;
   const STID = req.body.STID;
   const Qty = req.body.quantity;
@@ -456,6 +445,7 @@ app.post("/addSalesOrderItem", (req, res) => {
 });
 
 app.post("/getProductsFromOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const SKU = req.body.sku;
   const STID = req.body.stid;
   if (SKU == -1) {
@@ -477,6 +467,7 @@ app.post("/getProductsFromOrder", (req, res) => {
 });
 
 app.post("/delSalesOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const SOID = req.body.SOID;
   console.log(SOID);
   db.query(
@@ -495,6 +486,7 @@ app.post("/delSalesOrder", (req, res) => {
 
 
 app.post("/getSalesOrders", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
     "SELECT SOID, Sales_Orders.SKU, Product_Name, Qty, Retail_Price, Discount, SUM(Qty * Retail_Price * (100-Discount) / 100) As Value FROM Sales_Orders LEFT JOIN Product ON Sales_Orders.SKU = Product.SKU GROUP BY SOID;",
     (err, result) => {
@@ -511,6 +503,7 @@ app.post("/getSalesOrders", (req, res) => {
 });
 
 app.post("/getStaffList", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
     "SELECT Staff_ID, Username, User_Privileges, Is_Active FROM Staff",
     (err, result) => {
@@ -525,6 +518,7 @@ app.post("/getStaffList", (req, res) => {
 });
 
 app.post("/setStaffPurchasing", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
   db.query("UPDATE Staff SET User_Privileges = 1 WHERE Staff_ID = ?;", [Staff_ID], (err, result) => {
     if (err) {
@@ -537,6 +531,7 @@ app.post("/setStaffPurchasing", (req, res) => {
 });
 
 app.post("/setStaffSales", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
   db.query("UPDATE Staff SET User_Privileges = 0 WHERE Staff_ID = ?;", [Staff_ID], (err, result) => {
     if (err) {
@@ -549,6 +544,7 @@ app.post("/setStaffSales", (req, res) => {
 });
 
 app.post("/setStaffAdmin", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
   db.query("UPDATE Staff SET User_Privileges = 2 WHERE Staff_ID = ?;", [Staff_ID], (err, result) => {
     if (err) {
@@ -561,6 +557,7 @@ app.post("/setStaffAdmin", (req, res) => {
 });
 
 app.post("/setStaffActive", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
   db.query("UPDATE Staff SET Is_Active = 1 WHERE Staff_ID = ?;", [Staff_ID], (err, result) => {
     if (err) {
@@ -573,6 +570,7 @@ app.post("/setStaffActive", (req, res) => {
 });
 
 app.post("/setStaffDeactive", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
   db.query("UPDATE Staff SET Is_Active = 0 WHERE Staff_ID = ?;", [Staff_ID], (err, result) => {
     if (err) {
@@ -586,6 +584,7 @@ app.post("/setStaffDeactive", (req, res) => {
 });
 
 app.post("/getStaffPrivilege", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
   db.query("SELECT User_Privileges FROM Staff WHERE Staff_ID = ?;", [Staff_ID], (err, result) => {
     if (err) {
@@ -598,8 +597,8 @@ app.post("/getStaffPrivilege", (req, res) => {
 });
 
 
-app.listen(3002, () => {
-  console.log("Running server");
+app.listen(THIS_PORT, () => {
+  console.log("Running Backend Server on port: " + THIS_PORT);
 });
 
 module.exports = app;

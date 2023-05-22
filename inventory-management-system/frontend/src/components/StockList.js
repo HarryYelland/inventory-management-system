@@ -2,6 +2,8 @@ import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 var selected = -1;
 //console.log(selected);
 
@@ -10,7 +12,7 @@ var selected = -1;
 
 const radioSelected = (event) => {
   selected = event.target.value;
-  alert("You have selected SKU: ", event.target.value.toString());
+  alert("You have selected SKU: " + event.target.value);
   localStorage.setItem("sku", event.target.value);
   //sessionStorage.getItem("selectedSKU");
 };
@@ -69,7 +71,7 @@ function StockList() {
   const [stockItems, setStockItems] = useState([]);
   const [prevStockItems, setPrevStockItems] = useState([-1]);
   useEffect(() => {
-    Axios.post("http://localhost:3002/getStockItems", {
+    Axios.post(BACKEND_ADDRESS + "/getStockItems", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       dbQuery: "",
     }).then((response) => {

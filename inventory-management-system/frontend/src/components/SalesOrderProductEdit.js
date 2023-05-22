@@ -2,10 +2,12 @@ import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 // Function to handle submitting the product to the sales order
 const submit = () => {
   // POST request to the backend to submit the item to the sales order
-  Axios.post("http://localhost:3002/addSalesOrderItem", {
+  Axios.post(BACKEND_ADDRESS + "/addSalesOrderItem", {
     // Pass the transaction id to associate item to order
     STID: localStorage.getItem("salesOrder"),
     // Pass the product name
@@ -33,7 +35,7 @@ function SalesOrderProductEdit() {
   
   // Whilst not all products loaded, keep re-rendering the page
   useEffect(() => {
-    Axios.post("http://localhost:3002/getSalesSKUs", {
+    Axios.post(BACKEND_ADDRESS + "/getSalesSKUs", {
       // No post data required
     }).then((response) => {
       // if the product list has changed, update the list of products
@@ -58,7 +60,7 @@ function SalesOrderProductEdit() {
   // Load all product details from the database
   useEffect(() => {
     // POST request to the backend to get the product details
-    Axios.post("http://localhost:3002/getProductsFromOrder", {
+    Axios.post(BACKEND_ADDRESS + "/getProductsFromOrder", {
       // Post SKU and Transaction ID so that product details can be loaded
       sku: localStorage.getItem("sku"),
       stid: localStorage.getItem("salesOrder"),
@@ -89,7 +91,7 @@ function SalesOrderProductEdit() {
         <div className="form-inputs">
           <select id="product-selection"
           defaultValue={localStorage.getItem("salesProductName")}>
-            {categoryItems.map((element, index) => (
+            {productList.map((element, index) => (
               <option key={index}>{element}</option>
             ))}{" "}
           </select>

@@ -1,13 +1,15 @@
 import "./StockList.css";
 import Axios from "axios";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 const submit = () => {
   console.log(
     "submitting category",
     document.getElementById("category-name").value,
     document.getElementById("obsolete").value
   );
-  Axios.post("http://localhost:3002/addCategory", {
+  Axios.post(BACKEND_ADDRESS + "/addCategory", {
     category_name: document.getElementById("category-name").value,
     obsolete: document.getElementById("obsolete").value,
   }).then((response) => {

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Axios from "axios";
 import { CSVLink } from "react-csv";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
 
 // Function for the Reports page
 function Reports() {
@@ -14,7 +15,7 @@ const [prevStockReport, setPrevStockReport] = useState([-1]);
 // Use effect to get the stock report data from the database, re-render until all data loaded (stockreport = prevstockreport)
 useEffect(() => {
     // Post request to get stock report data
-    Axios.post("http://localhost:3002/getStockItems", {
+    Axios.post(BACKEND_ADDRESS + "/getStockItems", {
       // No post data needed as backend handles this
     }).then((response) => {
       // Check if reached end of data, add data to report
@@ -31,7 +32,7 @@ const [prevSalesReport, setPrevSalesReport] = useState([-1]);
 // Use effect to get the sales report data from the database, re-render until all data loaded (salesreport = prevsalesreport)
 useEffect(() => {
   // Post request to get sales report data
-    Axios.post("http://localhost:3002/getSalesHistory", {
+    Axios.post(BACKEND_ADDRESS + "/getSalesHistory", {
       // No post data needed as backend handles this
     }).then((response) => {
       // Check if reached end of data, add data to report
@@ -50,7 +51,7 @@ const [prevSalesTransactionsReport, setPrevSalesTransactionsReport] = useState([
 // Use effect to get the sales transactions report data from the database, re-render until all data loaded (salestransactionsreport = prevsalestransactionsreport)
 useEffect(() => {
   // Post request to get sales transactions report data
-    Axios.post("http://localhost:3002/getSalesOrders", {
+    Axios.post(BACKEND_ADDRESS + "/getSalesOrders", {
       // No post data needed as backend handles this
     }).then((response) => {
         // Check if reached end of data, add data to report

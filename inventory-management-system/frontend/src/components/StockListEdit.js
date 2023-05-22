@@ -4,9 +4,11 @@ import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 const submit = () => {
   console.log(localStorage.getItem("sku"));
-  Axios.post("http://localhost:3002/editProduct", {
+  Axios.post(BACKEND_ADDRESS + "/editProduct", {
     sku: localStorage.getItem("sku"),
     product_name: document.getElementById("product-name").value,
     category: document.getElementById("category-selection").value,
@@ -15,7 +17,8 @@ const submit = () => {
     moq: document.getElementById("min-order-qty").value,
     obsolete: document.getElementById("obsolete").value,
   }).then((response) => {
-    alert(response);
+    alert("Updated product");
+    window.location.href = "/stocklist"
   });
 };
 
@@ -23,7 +26,7 @@ function StockListEdit() {
   const [categoryItems, setCategoryItems] = useState([]);
   const [prevCategoryItems, setPrevCategoryItems] = useState([-1]);
   useEffect(() => {
-    Axios.post("http://localhost:3002/getCategories", {
+    Axios.post(BACKEND_ADDRESS + "/getCategories", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       dbQuery: "",
     }).then((response) => {
@@ -43,7 +46,7 @@ function StockListEdit() {
 
   //LOAD ALL PRODUCT DETAILS HERE
   useEffect(() => {
-    Axios.post("http://localhost:3002/getProduct", {
+    Axios.post(BACKEND_ADDRESS + "/getProduct", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       sku: localStorage.getItem("sku"),
     }).then((response) => {

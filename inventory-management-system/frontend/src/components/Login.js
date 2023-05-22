@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import Axios from 'axios';
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 // Function for managing login and registration
 export default function Login() {
+
 
   // State variables for registration and login
   const [usernameReg, setUsernameReg] = useState('');
@@ -17,7 +20,7 @@ export default function Login() {
   // Function for registering a new user
   const register = ()=> {
     // POST request to backend to register new user
-    Axios.post('http://localhost:3002/register', {
+    Axios.post(BACKEND_ADDRESS + '/register', {
       // Sets username and password to the values entered by the user
       username: usernameReg,
       password: passwordReg
@@ -37,7 +40,7 @@ export default function Login() {
   // Function for lpgging in a user
   const login = ()=> {
     // POST request to backend to login user
-    Axios.post('http://localhost:3002/login', {
+    Axios.post(BACKEND_ADDRESS + '/login', {
       // Sets username and password to the values entered by the user
       username: usernameLog,
       password: passwordLog

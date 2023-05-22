@@ -2,6 +2,8 @@ import "./PurchaseHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 // Initialise a variable to hold the selected item from the table. Start at -1 to indicate no item selected. (Will use to error out if function called with val -1)
 var selected = -1;
 
@@ -85,7 +87,7 @@ function PurchaseHistory() {
   // Re-renders page until the list of purchases has completely loaded
   useEffect(() => {
     // Post request to backend to load purchase history
-    Axios.post("http://localhost:3002/getPurchaseHistory", {
+    Axios.post(BACKEND_ADDRESS + "/getPurchaseHistory", {
       // No data required
     }).then((response) => {
       // If the list of purchases has changed, update the list
@@ -113,7 +115,7 @@ function PurchaseHistory() {
   return (
     <div className="stock-list">
       <h2 className="stock-list-title">Purchase Transactions</h2>
-      <Table data={prevStockItems} className="stock-list-table" />
+      <Table data={prevPurchaseHistory} className="stock-list-table" />
       <div className="stock-list-control-buttons">
         <button className="stock-list-add-button">
           <a href="/stocklist-add">

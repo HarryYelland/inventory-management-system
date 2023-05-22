@@ -4,6 +4,7 @@ import "./SalesHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
 
 var Row = (props) => {
   var { SKU, Product_Name, Qty, Retail_Price, Discount, Value } = props;
@@ -54,7 +55,7 @@ function SalesOrderView() {
   const [stockItems, setStockItems] = useState([]);
   const [prevStockItems, setPrevStockItems] = useState([-1]);
   useEffect(() => {
-    Axios.post("http://localhost:3002/getSalesOrder", {
+    Axios.post(BACKEND_ADDRESS + "/getSalesOrder", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       STID: localStorage.getItem("salesOrder"),
     }).then((response) => {

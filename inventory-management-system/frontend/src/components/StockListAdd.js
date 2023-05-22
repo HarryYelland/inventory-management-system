@@ -1,9 +1,10 @@
 //https://stackoverflow.com/questions/50644976/react-button-onclick-redirect-page
-
-
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
+
+
+const BACKEND_ADDRESS = 'http://localhost:3001';
 
 const submit = () => {
   Axios.post("http://localhost:3002/addProducts", {
@@ -22,7 +23,7 @@ function StockListAdd() {
   const [categoryItems, setCategoryItems] = useState([]);
   const [prevCategoryItems, setPrevCategoryItems] = useState([-1]);
   useEffect(() => {
-    Axios.post("http://localhost:3002/getCategories", {
+    Axios.post(BACKEND_ADDRESS + "/getCategories", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       dbQuery: "",
     }).then((response) => {

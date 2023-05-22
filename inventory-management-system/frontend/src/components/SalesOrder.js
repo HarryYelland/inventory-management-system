@@ -194,7 +194,7 @@ function SalesOrder() {
       <h2 className="stock-list-title">
         Sales Order: {localStorage.getItem("salesOrder")}
       </h2>
-      <Table data={prevStockItems} className="stock-list-table" />
+      <Table data={prevSalesOrderLines} className="stock-list-table" />
       <div className="stock-list-control-buttons">
         <button className="stock-list-add-button">
           <a href="/sales-order-product-add">

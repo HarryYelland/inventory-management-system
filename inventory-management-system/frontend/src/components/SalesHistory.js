@@ -2,10 +2,12 @@ import "./SalesHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 // Functon to create a new sales order
 function createOrder() {
   // POST request to create a new sales order
-  Axios.post("http://localhost:3002/addSalesOrder", {
+  Axios.post(BACKEND_ADDRESS + "/addSalesOrder", {
     // Sets Staff ID to 1
 
     // -->> CHANGE TO USERS ID WHEN AUTH TOKENS WORKING <<--
@@ -120,7 +122,7 @@ function SalesHistory() {
   // Re-renders page until the list of sales has completely loaded
   useEffect(() => {
     // Post request to backend to load sales history
-    Axios.post("http://localhost:3002/getSalesHistory", {
+    Axios.post(BACKEND_ADDRESS + "/getSalesHistory", {
       // No data required
     }).then((response) => {
       // If the list of sales has changed, update the list
@@ -151,7 +153,7 @@ function SalesHistory() {
   return (
     <div className="stock-list">
       <h2 className="stock-list-title">Sales Transactions</h2>
-      <Table data={prevStockItems} className="stock-list-table" />
+      <Table data={prevSalesHistory} className="stock-list-table" />
       <div className="stock-list-control-buttons">
         <button className="stock-list-add-button">
           <a onClick={createOrder}>

@@ -5,6 +5,8 @@ import Axios from "axios";
 var selected = -1;
 //console.log(selected);
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 //stockItems is a placeholder array of objects that will be replaced by a call to the database to select from products
 // SELECT SKU, Product_Name, Stock_Quantity FROM Product LEFT JOIN Qty ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Delivery_Date ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Delivery_Date > CURRENT_DATE
 
@@ -14,7 +16,7 @@ function activateUser() {
   }
 
   if (window.confirm("Activate User (Staff ID: " + selected + ")?") === true) {
-    Axios.post("http://localhost:3002/setStaffActive", {
+    Axios.post(BACKEND_ADDRESS + "/setStaffActive", {
     Staff_ID: selected,
   }).then((response) => {
     console.log(response);
@@ -31,7 +33,7 @@ function deactivateUser() {
   giveSales();
 
   if (window.confirm("De-activate User (Staff ID: " + selected + ")?") === true) {
-    Axios.post("http://localhost:3002/setStaffDeactive", {
+    Axios.post(BACKEND_ADDRESS + "/setStaffDeactive", {
     Staff_ID: selected,
   }).then((response) => {
     console.log(response);
@@ -47,7 +49,7 @@ function giveAdmin() {
   }
 
   if (window.confirm("Give User (Staff ID: " + selected + ") System Admin Privileges? \nPlease note that this will give the user all permissions to purchase and edit other user's privileges.") === true) {
-    Axios.post("http://localhost:3002/setStaffAdmin", {
+    Axios.post(BACKEND_ADDRESS + "/setStaffAdmin", {
     Staff_ID: selected,
   }).then((response) => {
     console.log(response);
@@ -63,7 +65,7 @@ function givePurchasing() {
   }
 
   if (window.confirm("Give User (Staff ID: " + selected + ") Purchasing Privileges?") === true) {
-    Axios.post("http://localhost:3002/setStaffPurchasing", {
+    Axios.post(BACKEND_ADDRESS + "/setStaffPurchasing", {
     Staff_ID: selected,
   }).then((response) => {
     console.log(response);
@@ -79,7 +81,7 @@ function giveSales() {
   };
 
   if (window.confirm("Remove User (Staff ID: " + selected + ") Purchasing Privileges?") === true) {
-    Axios.post("http://localhost:3002/setStaffSales", {
+    Axios.post(BACKEND_ADDRESS + "/setStaffSales", {
     Staff_ID: selected,
   }).then((response) => {
     console.log(response);
@@ -162,7 +164,7 @@ function Settings() {
   const [staffList, setStaffList] = useState([]);
   const [prevStaffList, setPrevStaffList] = useState([-1]);
   useEffect(() => {
-    Axios.post("http://localhost:3002/getStaffList", {
+    Axios.post(BACKEND_ADDRESS + "/getStaffList", {
             dbQuery: "",
     }).then((response) => {
       if (staffList.toString() !== prevStaffList.toString()) {

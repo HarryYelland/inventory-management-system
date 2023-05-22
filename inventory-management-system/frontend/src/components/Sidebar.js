@@ -2,12 +2,14 @@ import React from "react";
 import Axios from "axios";
 import "./Sidebar.css";
 
+const BACKEND_ADDRESS = 'http://localhost:3001';
+
 // Function to create a new sales order
 function createSalesOrder() {
   // Asks user to confirm they want to start a new sales order
   if (window.confirm("Create a new Sales order?") === true) {
     // Sends a POST request to the backend to create a new sales order
-    Axios.post("http://localhost:3002/addSalesOrder", {
+    Axios.post(BACKEND_ADDRESS + "/addSalesOrder", {
         // Sets Staff ID to 1
 
         // -->> CHANGE TO USERS ID WHEN AUTH TOKENS WORKING <<--
@@ -31,7 +33,7 @@ function createPurchaseOrder() {
   // Asks user to confirm they want to start a new purchase order
   if (window.confirm("Create a new Purchase order?") === true) {
     // Sends a POST request to the backend to create a new purchase order
-    Axios.post("http://localhost:3002/addPurchaseOrder", {
+    Axios.post(BACKEND_ADDRESS + "/addPurchaseOrder", {
       // Sets Staff ID to 1
 
       // -->> CHANGE TO USERS ID WHEN AUTH TOKENS WORKING <<--
