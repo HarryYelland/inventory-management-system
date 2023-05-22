@@ -11,8 +11,80 @@ app.use(cors());
 const THIS_PORT = 3001;
 const FRONTEND_ADDRESS = 'https://localhost:3000';
 
+const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 
-//hash salt and pepper here
+// Function for generating a salt
+function generateSalt(){
+  var salt = "";
+// Generate a random 10 character salt
+  for(let i = 0; i < 10; i ++){
+    // Generate random char from allchars constant
+    var char = allChars.charAt(Math.floor(Math.random() * allChars.length));
+    // Add character to salt
+    salt += char;
+  }
+  return salt
+}
+
+// Function for adding salt to password
+function addSalt(rawPassword, salt){
+  // Adds first 5 characters of salt
+  var improvedPassword = salt.slice(0, 4)
+  // Adds the original password inbetween
+  improvedPassword += rawPassword
+  // Adds final 5 characters of salt
+  improvedPassword += salt.slice(5, 9)
+  // returns the salted password
+  return improvedPassword;
+}
+
+// Function for generating a pepper
+function generatePepper(){
+  var pepper = "";
+// Generate a random 2 character pepper
+  for(let i = 0; i < 2; i ++){
+    // Generate random char from allchars constant
+    var char = allChars.charAt(Math.floor(Math.random() * allChars.length));
+    // Add character to pepper
+    pepper += char;
+  }
+  return pepper
+}
+
+// Function for adding pepper to password
+function addPepper(rawPassword, pepper){
+  // adds first char of pepper
+  var improvedPassword = pepper.charAt(0);
+  // adds pre-salted password
+  improvedPassword += rawPassword;
+  // adds last char of pepper
+  improvedPassword += pepper.charAt(1);
+  // returns peppered password
+  return improvedPassword;
+}
+
+// Function for adding Hash to salt-pepper password
+function addHash(rawPassword){
+  //https://www.geeksforgeeks.org/how-to-create-hash-from-string-in-javascript/
+  hashPwd = crypto.createHash('sha256').update(rawPassword).digest('hex');
+  return hashPwd;
+}
+
+// Function to generate Salt, Pepper, Hash Password
+function generatePassword(rawPassword){
+  // Gets a salt
+  var salt = generateSalt();
+  // Gets a pepper
+  var pepper = generatePepper();
+  // Add salt to password
+  var improvedPassword = addSalt(rawPassword, salt);
+  // Adds pepper to salted password
+  improvedPassword = addPepper(improvedPassword, pepper);
+  // Adds hash to salt-pepper password
+  improvedPassword = addHash(improvedPassword);
+  // returns password and salt for db storage
+  return [improvedPassword, salt];
+}
 
 // anti-sqli 
 
