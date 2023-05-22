@@ -15,28 +15,37 @@ const FRONTEND_ADDRESS = 'https://localhost:3000';
 
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 
+//Function to check if database created, if not creates it
 function databaseCreation(){
-console.log("Started Running Database Creation");
-//https://stackoverflow.com/questions/22276763/use-nodejs-to-run-an-sql-file-in-mysql
-var myCon = mysql.createConnection({
-  host: dbHost,
-  user: dbUser,
-  password: dbPassword,
-  database: dbDatabase
-});
-var rl = readline.createInterface({
-  input: fs.createReadStream('db-creation.sql'),
-  terminal: false
- });
-rl.on('line', function(chunk){
-    myCon.query(chunk.toString('ascii'), function(err, sets, fields){
-     if(err) console.log(err);
+  //Alerts the backend admin that this check is taking place
+  console.log("Started Running Database Creation");
+  //https://stackoverflow.com/questions/22276763/use-nodejs-to-run-an-sql-file-in-mysql
+  //Create a connection to the database using environment variables
+  var dbCreate = mysql.createConnection({
+    host: dbHost,
+    user: dbUser,
+    password: dbPassword,
+    database: dbDatabase
+  });
+
+  //Read the db-creation sql file
+  var rl = readline.createInterface({
+    input: fs.createReadStream('db-creation.sql'),
+    terminal: false
+  });
+  // Run the file line-by-line as multiple statements
+  rl.on('line', function(chunk){
+    dbCreate.query(chunk.toString('ascii'), function(err, sets, fields){
+      // If there is an error in the sql, log it
+      if(err) console.log(err);
     });
-});
-rl.on('close', function(){
-  console.log("Finished Running Database Creation");
-  myCon.end();
-});
+  });
+  // Once file has been run, inform the backend admin that process has finished
+  rl.on('close', function(){
+    console.log("Finished Running Database Creation");
+    // Close connection as no longer needed
+    dbCreate.end();
+  });
 }
 
 // Function for generating a salt
@@ -66,25 +75,17 @@ function addSalt(rawPassword, salt){
 
 // Function for generating a pepper
 function generatePepper(){
-  var pepper = "";
-// Generate a random 2 character pepper
-  for(let i = 0; i < 2; i ++){
-    // Generate random char from allchars constant
-    var char = allChars.charAt(Math.floor(Math.random() * allChars.length));
-    // Add character to pepper
-    pepper += char;
-  }
+  // Generate random char from allchars constant for a pepper
+  var pepper  = allChars.charAt(Math.floor(Math.random() * allChars.length));
   return pepper
 }
 
 // Function for adding pepper to password
 function addPepper(rawPassword, pepper){
-  // adds first char of pepper
-  var improvedPassword = pepper.charAt(0);
+  // adds pepper char 
+  var improvedPassword = pepper;
   // adds pre-salted password
   improvedPassword += rawPassword;
-  // adds last char of pepper
-  improvedPassword += pepper.charAt(1);
   // returns peppered password
   return improvedPassword;
 }
@@ -110,6 +111,37 @@ function generatePassword(rawPassword){
   improvedPassword = addHash(improvedPassword);
   // returns password and salt for db storage
   return [improvedPassword, salt];
+}
+
+// Function for checking the password
+function checkPassword(username, rawPassword, salt){
+  var correct = false;
+  // Adds the salt to the password
+  var improvedPassword = addSalt(rawPassword, salt);
+  // Runs through every possible pepper
+  for(let i=0; i<allChars.length; i++){
+    improvedPassword = allChars.charAt(i) + improvedPassword;
+    // hashes the salt-pepper password
+    improvedPassword = addHash(improvedPassword);
+    // gets the password from the db
+    db.query(
+      "SELECT `password` FROM staff WHERE username = ?;",
+      [username],
+      (err, result) => {
+        if (err) {
+          console.log(err);
+        }
+        console.log(result);
+        // checks if the guess is correct
+        if(result === improvedPassword){
+          // sets correct to true
+          correct = true;
+        }
+      }
+    );
+  }
+  // returns if the attempt was correct
+  return correct;
 }
 
 // anti-sqli 
