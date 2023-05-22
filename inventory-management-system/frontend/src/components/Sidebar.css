@@ -1,6 +1,6 @@
 .sidebar-body {
   background-color: #f7f7f7;
-  width: 21vh;
+  width: 23vh;
   height: 100vh;
   border-right-color: #808080;
   border-right-width: 6px;
@@ -52,7 +52,6 @@ h2 {
   font-size: 20px;
   text-align: center;
   align-items: center;
-  padding-left: 4.2vh;
 }
 
 .logout {
@@ -68,9 +67,8 @@ h2 {
 .settings-icon {
   float: right;
   padding-top: 3.8vh;
-  padding-right: 1.5vw;
-  width:2vw;
-  height: 2vw;
+  width:3.5vw;
+  height: 3.5vw;
   cursor: pointer;
   
 }

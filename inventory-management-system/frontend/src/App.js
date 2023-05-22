@@ -25,7 +25,7 @@ export default function App() {
 
   return (
     <div className="view">
-      <Sidebar />
+      <Sidebar id="sidebar" />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
