@@ -4,6 +4,8 @@ const cors = require("cors");
 var app = express();
 var fs = require("fs");
 const { isObject } = require("util");
+var readline = require('readline');
+
 
 app.use(express.json());
 app.use(cors());
@@ -12,6 +14,30 @@ const THIS_PORT = 3001;
 const FRONTEND_ADDRESS = 'https://localhost:3000';
 
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+
+function databaseCreation(){
+console.log("Started Running Database Creation");
+//https://stackoverflow.com/questions/22276763/use-nodejs-to-run-an-sql-file-in-mysql
+var myCon = mysql.createConnection({
+  host: dbHost,
+  user: dbUser,
+  password: dbPassword,
+  database: dbDatabase
+});
+var rl = readline.createInterface({
+  input: fs.createReadStream('db-creation.sql'),
+  terminal: false
+ });
+rl.on('line', function(chunk){
+    myCon.query(chunk.toString('ascii'), function(err, sets, fields){
+     if(err) console.log(err);
+    });
+});
+rl.on('close', function(){
+  console.log("Finished Running Database Creation");
+  myCon.end();
+});
+}
 
 // Function for generating a salt
 function generateSalt(){
@@ -670,6 +696,8 @@ app.post("/getStaffPrivilege", (req, res) => {
 
 
 app.listen(THIS_PORT, () => {
+  // Checks to see if database exists - if not, creates it.
+  databaseCreation();
   console.log("Running Backend Server on port: " + THIS_PORT);
 });
 
