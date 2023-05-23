@@ -6,14 +6,15 @@ var fs = require("fs");
 const { isObject } = require("util");
 var readline = require('readline');
 
-
 app.use(express.json());
 app.use(cors());
+
 
 const THIS_PORT = 3001;
 const FRONTEND_ADDRESS = 'https://localhost:3000';
 
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+
 
 //Function to check if database created, if not creates it
 function databaseCreation(){
@@ -49,7 +50,7 @@ function databaseCreation(){
 }
 
 // Function for generating a salt
-function generateSalt(){
+ function generateSalt(){
   var salt = "";
 // Generate a random 10 character salt
   for(let i = 0; i < 10; i ++){
@@ -144,13 +145,9 @@ function checkPassword(username, rawPassword, salt){
   return correct;
 }
 
-// anti-sqli 
-
-// anti-css
-
 
 //list of chars taken from https://www.folkstalk.com/tech/avoid-sql-injection-in-password-field-with-code-examples/
-const badChars = [
+const sqlChars = [
   "{",
   ",",
   '"',
@@ -171,7 +168,6 @@ const badChars = [
   "<",
   "=",
   ">",
-  "?",
   "[",
   "|",
   "\t",
@@ -179,7 +175,7 @@ const badChars = [
 ];
 
 // https://www.w3schools.com/sql/sql_ref_keywords.asp
-const badPhrases = [
+const sqlPhrases = [
   "SELECT",
   "DELETE",
   "UPDATE",
@@ -189,7 +185,36 @@ const badPhrases = [
   "DROP",
   "ORDER",
   "GROUP",
-  "JOIN",
+  "JOIN"
+]
+
+const cssPhrases = [
+  "<SCRIPT>",
+  "<SCRIPT/>",
+  "SCRIPT",
+  "<STYLE>",
+  "<STYLE/>",
+  "ALERT(",
+  "<XSS",
+  "XSS",
+  "<BODY",
+  "<BODY",
+  "BODY",
+  "<SVG>",
+  "SVG",
+  "<MARQUEE",
+  "MARQUEE",
+  "<AUDIO",
+  "<AUDIO>",
+  "<SOURCE",
+  "<VIDEO",
+  "<VIDEO>",
+  "<A>",
+  "<A",
+  "<SPAN",
+  "<SPAN>",
+  "<DETAILS>",
+  "<DETAILS"
 ]
 
 try {
@@ -215,26 +240,55 @@ const db = mysql.createConnection({
 function sqlInject(data) {
   var hasSQL = false;
   var hasSQLChar = false;
-  for(let i=0; i<badChars.length; i++){
-    if(data.includes(badChars[i])){
+  for(let i=0; i<sqlPhrases.length; i++){
+    if(data.includes(sqlChars[i])){
       hasSQLChar = true;
     }
   }
 
   var hasSQLString = false;
-  for(let i=0; i<badPhrases.length; i++){
-    if(data.toUpperCase().includes(badPhrases[i]) == true){
+  for(let i=0; i<sqlPhrases.length; i++){
+    if(data.toUpperCase().includes(sqlPhrases[i]) == true){
       hasSQLString = true;
     }
   }
-  console.log("hasSQLChar " + hasSQLChar);
-  console.log("hasSQLString " + hasSQLString);
   if(hasSQLChar == true || hasSQLString == true){
       hasSQL = true;
   }
-  console.log(hasSQL);
   return hasSQL;
 }
+
+// Function to check if cross-site-scripting has been injected into message
+function cssInject(data) {
+  var hasCSS = false;
+  for(let i=0; i<cssPhrases.length; i++){
+    if(data.toUpperCase().includes(cssPhrases[i]) == true){
+      hasCSS = true;
+    }
+  }
+  return hasCSS;
+}
+
+
+// Function to check santity of any given data
+function sanitiseInput(data){
+  var clean = true;
+  // Checks if SQL injected
+  if(sqlInject(data) === false){
+    // Logs Injection to Console so Backend Admin can Monitor
+    console.log("SQL INJECTION DETECTED ON INPUT: " + data);
+    clean = false;
+  }
+  // Checks if Cross-Site-Scripting Injected
+  if(cssInject(data) === false){
+    // Logs Injection to Console so Backend Admin can Monitor
+    console.log("CROSS-SITE-SCRIPTING DETECTED ON INPUT: " + data);
+    clean = false;
+  }
+  // Returns cleanliness rating
+  return clean;
+}
+
 
 
 app.post("/register", (req, res) => {
@@ -733,4 +787,18 @@ app.listen(THIS_PORT, () => {
   console.log("Running Backend Server on port: " + THIS_PORT);
 });
 
-module.exports = app;
+module.exports = {
+  allChars,
+  databaseCreation,
+  generateSalt,
+  generatePepper,
+  generatePassword,
+  addSalt,
+  addPepper,
+  addHash,
+  sqlChars,
+  sqlPhrases,
+  sqlInject,
+  cssPhrases,
+  cssInject
+}
