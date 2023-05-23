@@ -5,6 +5,7 @@ var app = express();
 var fs = require("fs");
 const { isObject } = require("util");
 var readline = require('readline');
+const crypto = require('crypto');
 
 app.use(express.json());
 app.use(cors());
@@ -15,11 +16,14 @@ const FRONTEND_ADDRESS = 'https://localhost:3000';
 
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 
+function setABC(){
+
+}
 
 //Function to check if database created, if not creates it
 function databaseCreation(){
   //Alerts the backend admin that this check is taking place
-  console.log("Started Running Database Creation");
+  //console.log("Started Running Database Creation");
   //https://stackoverflow.com/questions/22276763/use-nodejs-to-run-an-sql-file-in-mysql
   //Create a connection to the database using environment variables
   var dbCreate = mysql.createConnection({
@@ -43,7 +47,7 @@ function databaseCreation(){
   });
   // Once file has been run, inform the backend admin that process has finished
   rl.on('close', function(){
-    console.log("Finished Running Database Creation");
+    //console.log("Finished Running Database Creation");
     // Close connection as no longer needed
     dbCreate.end();
   });
@@ -65,11 +69,11 @@ function databaseCreation(){
 // Function for adding salt to password
 function addSalt(rawPassword, salt){
   // Adds first 5 characters of salt
-  var improvedPassword = salt.slice(0, 4)
+  var improvedPassword = salt.slice(0, 5)
   // Adds the original password inbetween
   improvedPassword += rawPassword
   // Adds final 5 characters of salt
-  improvedPassword += salt.slice(5, 9)
+  improvedPassword += salt.slice(5, 10)
   // returns the salted password
   return improvedPassword;
 }
@@ -783,7 +787,7 @@ app.post("/getStaffPrivilege", (req, res) => {
 
 app.listen(THIS_PORT, () => {
   // Checks to see if database exists - if not, creates it.
-  databaseCreation();
+  //databaseCreation();
   console.log("Running Backend Server on port: " + THIS_PORT);
 });
 
