@@ -1,3 +1,20 @@
+//=============================================================================
+//                              App.js (Backend)
+//
+//  This is the main backend controlling file. This handles all requests from
+//  the frontend (http://localhost:3000). Connects frontend with database in
+//  a managed way. All data processing/sanitisation goes on here.
+//
+//                              By Harry Yelland
+//=============================================================================
+//				
+//                                 Changelog
+//
+//     25/05 - Added formal comments
+//=============================================================================
+
+
+// All requires
 var express = require("express");
 const mysql = require("mysql");
 const cors = require("cors");
@@ -7,24 +24,39 @@ const { isObject } = require("util");
 var readline = require('readline');
 const crypto = require('crypto');
 
+// Use Express and Cross Origin Request Libraries
 app.use(express.json());
 app.use(cors());
 
-
+// Set the port for the backend to 3001
 const THIS_PORT = 3001;
+// Set the frontend to be at localhost (port 3000)
 const FRONTEND_ADDRESS = 'https://localhost:3000';
 
+// Create a list of all possible characters for salt & pepper use later
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 
 function setABC(){
 
 }
 
-//Function to check if database created, if not creates it
+
+
+//=============================================================================
+//                                databaseCreation()
+//  This function runs the db-creation.sql file. Database connection
+//  established using the environmental variables found in db-config.json.
+//  Uses 'IF NOT EXISTS' statements so should always ensure that database 
+//  exists before system boots.
+//
+//               Parameters: N/A (All inputs hard-coded/loaded from file)
+//
+//                              Returns: N/A (No return)
+//
+//  References/Sources:
+//  https://stackoverflow.com/questions/22276763/use-nodejs-to-run-an-sql-file-in-mysql
+//=============================================================================
 function databaseCreation(){
-  //Alerts the backend admin that this check is taking place
-  //console.log("Started Running Database Creation");
-  //https://stackoverflow.com/questions/22276763/use-nodejs-to-run-an-sql-file-in-mysql
   //Create a connection to the database using environment variables
   var dbCreate = mysql.createConnection({
     host: dbHost,
@@ -53,7 +85,18 @@ function databaseCreation(){
   });
 }
 
-// Function for generating a salt
+
+
+//=============================================================================
+//                                 generateSalt()
+//  Function to create a salt for the password. Should generate a 10 character
+//  string.
+//
+//                        Parameters: N/A (No input parameters)
+//
+//                              Returns: Salt (10 char string)
+// 
+//=============================================================================
  function generateSalt(){
   var salt = "";
 // Generate a random 10 character salt
@@ -66,7 +109,19 @@ function databaseCreation(){
   return salt
 }
 
-// Function for adding salt to password
+
+
+//=============================================================================
+//                                   addSalt()
+//  Function for adding salt to a password. Should take the salt (10 chars), 
+//  split it and put the first 5 chars at the start of the password and the
+//  second 5 chars at the end of the password.
+//
+//                  Parameters: Password (String), Salt (10 Char String)
+//
+//                       Returns: Improved Password (Salted Password)
+// 
+//=============================================================================
 function addSalt(rawPassword, salt){
   // Adds first 5 characters of salt
   var improvedPassword = salt.slice(0, 5)
@@ -78,14 +133,36 @@ function addSalt(rawPassword, salt){
   return improvedPassword;
 }
 
-// Function for generating a pepper
+
+
+//=============================================================================
+//                                generatePepper()
+//  Function to generate a single character for the pepper.
+//
+//
+//                       Parameters: N/A (No input parameters)
+//
+//                        Returns: Pepper (Single Char String)
+// 
+//=============================================================================
 function generatePepper(){
   // Generate random char from allchars constant for a pepper
   var pepper  = allChars.charAt(Math.floor(Math.random() * allChars.length));
   return pepper
 }
 
-// Function for adding pepper to password
+
+
+//=============================================================================
+//                                 addPepper()
+//  Function for adding the single char pepper to the salted password.
+//
+//
+//                 Parameters: (Salted) Password, (Single Char) Pepper
+//
+//                    Returns: improvedPassword (Peppered Password)
+// 
+//=============================================================================
 function addPepper(rawPassword, pepper){
   // adds pepper char 
   var improvedPassword = pepper;
@@ -95,14 +172,40 @@ function addPepper(rawPassword, pepper){
   return improvedPassword;
 }
 
-// Function for adding Hash to salt-pepper password
+
+
+//=============================================================================
+//                                   addHash()
+//  Function to generate the SHA256 hashed version of the password to store
+//  in the database. Uses crypto library to generate. Should be applied to an
+//  already salted & peppered password.
+//
+//                       Parameters: (Salted & Peppered) Password
+//
+//                              Returns: Hashpwd
+// 
+//  References/Sources:
+//  https://www.geeksforgeeks.org/how-to-create-hash-from-string-in-javascript/  
+//
+//=============================================================================
 function addHash(rawPassword){
-  //https://www.geeksforgeeks.org/how-to-create-hash-from-string-in-javascript/
   hashPwd = crypto.createHash('sha256').update(rawPassword).digest('hex');
   return hashPwd;
 }
 
-// Function to generate Salt, Pepper, Hash Password
+
+
+//=============================================================================
+//                                generatePassword
+//  Takes the original password that the user inputted, puts the password
+//  through the salt, pepper and hash functions to created a much more secure,
+//  salt-pepper-hash password.
+//
+//                    Parameters: rawPassword (User inputted password)
+//
+//                  Returns: Array of: [salt-pepper-hash password, salt]
+// 
+//=============================================================================
 function generatePassword(rawPassword){
   // Gets a salt
   var salt = generateSalt();
@@ -118,7 +221,19 @@ function generatePassword(rawPassword){
   return [improvedPassword, salt];
 }
 
-// Function for checking the password
+
+
+//=============================================================================
+//                                checkPassword()
+//  Function for checking the password entered at login by the user. Gets the
+//  password, adds salt, pepper and then hash - checks against hashed password
+//  in the database. Sets correct true/false based on password validity.
+//
+//                       Parameters: Username, Password, Salt
+//
+//                            Returns: Correct (Boolean)
+// 
+//=============================================================================
 function checkPassword(username, rawPassword, salt){
   var correct = false;
   // Adds the salt to the password
@@ -150,6 +265,7 @@ function checkPassword(username, rawPassword, salt){
 }
 
 
+
 //list of chars taken from https://www.folkstalk.com/tech/avoid-sql-injection-in-password-field-with-code-examples/
 const sqlChars = [
   "{",
@@ -178,6 +294,8 @@ const sqlChars = [
   "\n",
 ];
 
+
+
 // https://www.w3schools.com/sql/sql_ref_keywords.asp
 const sqlPhrases = [
   "SELECT",
@@ -191,6 +309,8 @@ const sqlPhrases = [
   "GROUP",
   "JOIN"
 ]
+
+
 
 const cssPhrases = [
   "<SCRIPT>",
@@ -221,6 +341,13 @@ const cssPhrases = [
   "<DETAILS"
 ]
 
+
+
+//=============================================================================
+//  Establishes a connection to the database that can be pooled throughout
+//  for all queries. Uses login details for db found in db-config.json
+//
+//=============================================================================
 try {
   let rawdata = fs.readFileSync("db-config.json");
   let dbConfig = JSON.parse(rawdata);
@@ -240,7 +367,22 @@ const db = mysql.createConnection({
 });
 
 
-// Function to check if sql has been injected into message
+
+//=============================================================================
+//                                  sqlInject()
+//  Function to test if SQL has been injected into the user's input. Checks
+//  for both escape characters and SQL keywords. Returns boolean value (false
+//  if no SQL injection, true if injected).
+//
+//                            Parameters: data (String)
+//
+//                              Returns: hasSQL (Boolean)
+// 
+//  References/Sources:
+//  https://www.folkstalk.com/tech/avoid-sql-injection-in-password-field-with-code-examples/
+//  https://www.w3schools.com/sql/sql_ref_keywords.asp
+//
+//=============================================================================
 function sqlInject(data) {
   var hasSQL = false;
   var hasSQLChar = false;
@@ -262,7 +404,19 @@ function sqlInject(data) {
   return hasSQL;
 }
 
-// Function to check if cross-site-scripting has been injected into message
+
+
+//=============================================================================
+//                                  cssInject()
+//  Function to check if cross-site scripting has been injected into the user's
+//  input. Checks against cssPhrases array. Returns boolean (false if no CSS
+//  injection, true if injected).
+//
+//                            Parameters: data (String)
+//
+//                              Returns: hasCss (Boolean)
+// 
+//=============================================================================
 function cssInject(data) {
   var hasCSS = false;
   for(let i=0; i<cssPhrases.length; i++){
@@ -274,7 +428,19 @@ function cssInject(data) {
 }
 
 
-// Function to check santity of any given data
+
+//=============================================================================
+//                                SanitiseInput()
+//  Function to check the sanctity of data input from the user. Passes the data
+//  through the SQL injection and Cross Site Scripting test functions to check
+//  if clean of both. If neither, clean = true, if SQL or CSS injected clean =
+//  false.
+//
+//                           Parameters: data (String)
+//
+//                            Returns: clean (Boolean)
+// 
+//=============================================================================
 function sanitiseInput(data){
   var clean = true;
   // Checks if SQL injected
@@ -295,6 +461,16 @@ function sanitiseInput(data){
 
 
 
+//=============================================================================
+//                                post(/register)
+//  Function to handle registration post requests. CORS whitelisting prevents
+//  requests from external sources (only allows frontend address).
+//
+//                        Parameters: Username, Password
+//
+//                              Returns: N/A
+// 
+//=============================================================================
 app.post("/register", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const username = req.body.username;
@@ -302,6 +478,20 @@ app.post("/register", (req, res) => {
   console.log(username);
 });
 
+
+
+//=============================================================================
+//                                post(/login)
+//  Function to handle login post requests.
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                        Parameters: Username, Password
+//
+//                              Returns: N/A
+// 
+//=============================================================================
 app.post("/login", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const username = req.body.username;
@@ -309,6 +499,20 @@ app.post("/login", (req, res) => {
   console.log(username);
 });
 
+
+
+//=============================================================================
+//                               post(/getStockItems)
+//  Function to handle requests to get all stock items.
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                             Parameters: N/A
+//
+//                    Returns: Array of all product details
+// 
+//=============================================================================
 app.post("/getStockItems", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
@@ -324,6 +528,20 @@ app.post("/getStockItems", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/getCategory)
+//  Function to handle requests to get categories name from category id.
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters: Category_ID (integer)
+//
+//                           Returns: Category_Name (String)
+// 
+//=============================================================================
 app.post("/getCategory", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const category_id = req.body.category_id;
@@ -341,6 +559,20 @@ app.post("/getCategory", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/getCategories)
+//  Function to handle requests to get all category names (where not obsolete)
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                                 Parameters: N/A
+//
+//                         Returns: Category_Names (Array)
+// 
+//=============================================================================
 app.post("/getCategories", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
@@ -356,6 +588,20 @@ app.post("/getCategories", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/getSalesSKUs)
+//  Function to handle getting Product Names (where not obsolete)
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                                 Parameters: N/A
+//
+//                         Returns: Product_Names (Array)
+// 
+//=============================================================================
 app.post("/getSalesSKUs", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
@@ -371,6 +617,22 @@ app.post("/getSalesSKUs", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/addProducts)
+//  Function to handle requests to add a new product to the system. Creates with
+//  no stock level (0), worst ABCXYZ rating (CZ) and obsolete to false.
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//  Parameters: Product_Name (String), Product_Category (String),
+//  Product_Retail_Price (Integer), Product_Cost_Price (Integer), MOQ (Integer),
+//
+//                         Returns: Message (String)
+// 
+//=============================================================================
 app.post("/addProducts", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const product_name = req.body.product_name;
@@ -437,6 +699,20 @@ app.post("/addProducts", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/getProduct)
+//  Function to handle getting all product information from SKU
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  SKU (Integer)
+//
+//                           Returns: Product (Array)
+// 
+//=============================================================================
 app.post("/getProduct", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const sku = req.body.sku;
@@ -454,6 +730,20 @@ app.post("/getProduct", (req, res) => {
   });
 });
 
+
+
+//=============================================================================
+//                               post(/addCategory)
+//  Function to add a new category to the system.
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                       Parameters: Category_Name (String)
+//
+//                           Returns: Message (String)
+// 
+//=============================================================================
 app.post("/addCategory", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const category_name = req.body.category_name;
@@ -477,6 +767,21 @@ app.post("/addCategory", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/editProduct)
+//  Function to handle editing product information (on already made item)
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//  Parameters:  SKU (Integer), Product_Name (String), Category (String),
+//  Cost_Price (Integer), Retail_Price (Integer), MOQ (Integer)
+//
+//                          Returns: Message (String)
+// 
+//=============================================================================
 app.post("/editProduct", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const sku = req.body.sku;
@@ -531,6 +836,20 @@ app.post("/editProduct", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                              post(/getPurchaseHistory)
+//  Function to handle getting all purchase history from the system
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                               Parameters:  N/A
+//
+//                         Returns: Purchase History (Array)
+// 
+//=============================================================================
 app.post("/getPurchaseHistory", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
@@ -547,6 +866,20 @@ app.post("/getPurchaseHistory", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                             post(/getSalesHistory)
+//  Function to handle getting all sales history information
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                                Parameters:  N/A
+//
+//                         Returns: Sales History (Array)
+// 
+//=============================================================================
 app.post("/getSalesHistory", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
@@ -563,6 +896,20 @@ app.post("/getSalesHistory", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/addSalesHistory)
+//  Function to handle adding a new sales transaction
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                           Parameters:  Staff_ID (Integer)
+//
+//                                  Returns: N/A
+// 
+//=============================================================================
 app.post("/addSalesOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const staff_ID = req.body.Staff_ID;
@@ -581,6 +928,20 @@ app.post("/addSalesOrder", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/getSalesOrder)
+//  Function to handle getting all sales order information from sales transaction
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                     Parameters:  Sales Transaction ID (Integer)
+//
+//                           Returns: Sales Order (Array)
+// 
+//=============================================================================
 app.post("/getSalesOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const STID = req.body.STID;
@@ -599,6 +960,21 @@ app.post("/getSalesOrder", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/addSalesOrderItem)
+//  Function to handle adding an item to a sales order
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//  Parameters: Product_Name (String), STID (Integer), Qty (Integer), Discount
+//  (Integer)
+//
+//                                    Returns: N/A
+// 
+//=============================================================================
 app.post("/addSalesOrderItem", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const product_name = req.body.product_name;
@@ -632,6 +1008,20 @@ app.post("/addSalesOrderItem", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/getProductsFromOrder)
+//  Function to handle getting product from Sales Order
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  SKU (Integer), STID (Integer)
+//
+//                           Returns: Products (Array)
+// 
+//=============================================================================
 app.post("/getProductsFromOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const SKU = req.body.sku;
@@ -654,6 +1044,21 @@ app.post("/getProductsFromOrder", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/delSalesOrder)
+//  Function to handle deleting a sales order from the system using the sales
+//  order id (SOID)
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  SOID (Integer)
+//
+//                                Returns: N/A
+// 
+//=============================================================================
 app.post("/delSalesOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const SOID = req.body.SOID;
@@ -673,6 +1078,19 @@ app.post("/delSalesOrder", (req, res) => {
 });
 
 
+
+//=============================================================================
+//                               post(/getSalesOrders)
+//  Function to handle getting all sales order information
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                                Parameters:  N/A
+//
+//                          Returns: Sales Orders (Array)
+// 
+//=============================================================================
 app.post("/getSalesOrders", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
@@ -690,6 +1108,20 @@ app.post("/getSalesOrders", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/getStaffList)
+//  Function to handle getting all staff information
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                                Parameters:  N/A
+//
+//                           Returns: Staff List (Array)
+// 
+//=============================================================================
 app.post("/getStaffList", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   db.query(
@@ -705,6 +1137,20 @@ app.post("/getStaffList", (req, res) => {
   );
 });
 
+
+
+//=============================================================================
+//                               post(/setStaffPurchasing)
+//  Function to handle setting a single Staff to have purchasing permission
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  Staff_ID (Integer)
+//
+//                                  Returns: N/A
+// 
+//=============================================================================
 app.post("/setStaffPurchasing", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
@@ -718,6 +1164,20 @@ app.post("/setStaffPurchasing", (req, res) => {
   });
 });
 
+
+
+//=============================================================================
+//                               post(/setStaffSales)
+//  Function to handle setting a single Staff to have sales permission
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  Staff_ID (Integer)
+//
+//                                  Returns: N/A
+// 
+//=============================================================================
 app.post("/setStaffSales", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
@@ -731,6 +1191,20 @@ app.post("/setStaffSales", (req, res) => {
   });
 });
 
+
+
+//=============================================================================
+//                               post(/setStaffAdmin)
+//  Function to handle setting a single Staff to have Admin permission
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  Staff_ID (Integer)
+//
+//                                  Returns: N/A
+// 
+//=============================================================================
 app.post("/setStaffAdmin", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
@@ -744,6 +1218,20 @@ app.post("/setStaffAdmin", (req, res) => {
   });
 });
 
+
+
+//=============================================================================
+//                               post(/setStaffActive)
+//  Function to handle setting a single Staff be an active account
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  Staff_ID (Integer)
+//
+//                                  Returns: N/A
+// 
+//=============================================================================
 app.post("/setStaffActive", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
@@ -757,6 +1245,20 @@ app.post("/setStaffActive", (req, res) => {
   });
 });
 
+
+
+//=============================================================================
+//                               post(/setStaffDeactive)
+//  Function to handle setting a single Staff to being deactivated
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  Staff_ID (Integer)
+//
+//                                  Returns: N/A
+// 
+//=============================================================================
 app.post("/setStaffDeactive", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
@@ -771,6 +1273,20 @@ app.post("/setStaffDeactive", (req, res) => {
   });
 });
 
+
+
+//=============================================================================
+//                               post(/getStaffPrivilege)
+//  Function to handle getting the privilege level of the staff member
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  Staff_ID (Integer)
+//
+//                         Returns: User_Privileges (Integer)
+// 
+//=============================================================================
 app.post("/getStaffPrivilege", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const Staff_ID = req.body.Staff_ID;
@@ -785,12 +1301,28 @@ app.post("/getStaffPrivilege", (req, res) => {
 });
 
 
+
+//=============================================================================
+//                                     Listener
+//  
+//  System runs backend server and listens on port (default 3001). When testing
+//  disabled, please enable databaseCreation() function as this will ensure the
+//  MySQL db is running and all tables exist as required for the system.
+//
+//=============================================================================
 app.listen(THIS_PORT, () => {
   // Checks to see if database exists - if not, creates it.
   //databaseCreation();
   console.log("Running Backend Server on port: " + THIS_PORT);
 });
 
+
+//=============================================================================
+//                                    Exports
+//
+//        Module exports functions for use in the testing file (test.js)
+// 
+//=============================================================================
 module.exports = {
   allChars,
   databaseCreation,

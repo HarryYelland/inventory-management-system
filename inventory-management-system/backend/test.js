@@ -11,8 +11,8 @@
 //				
 //                               Changelog
 //
-//     24/05 - Added formal comments
-//     23/05 - Created File, Added SQL, CSS, DB and Hash/Salt/Pepper Tests
+//  24/05 - Added formal comments
+//  23/05 - Created File, Added SQL, CSS, DB and Hash/Salt/Pepper Tests
 //
 //=============================================================================
 
