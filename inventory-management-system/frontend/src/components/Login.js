@@ -26,18 +26,15 @@ export default function Login() {
       password: passwordReg
     }).then((response) =>{
       // If successful, then set the login status to the user id (for testing purposes)
-      if(response.data.message){
-        // sets the login status to the message returned by the backend
-        setLoginStatus(response.data.message);
-        // sets id in local storage
-        localStorage.setItem('user', [usernameReg, passwordReg]);
-        // logs id in console for testing purposes
-        console.log(localStorage.getItem('user'));
+      if(response){
+        console.log(response.data);
+        window.localStorage.setItem("session", response.data);
+        window.alert("Registered Account")
       }
     })
   }
 
-  // Function for lpgging in a user
+  // Function for logging in a user
   const login = ()=> {
     // POST request to backend to login user
     Axios.post(BACKEND_ADDRESS + '/login', {

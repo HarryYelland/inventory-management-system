@@ -36,6 +36,10 @@ const FRONTEND_ADDRESS = 'https://localhost:3000';
 // Create a list of all possible characters for salt & pepper use later
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 
+// Varaible for storing all sessions in
+var sessions = [];
+
+
 function setABC(){
 
 }
@@ -85,6 +89,29 @@ function databaseCreation(){
   });
 }
 
+
+//=============================================================================
+//                                 generateSessionID()
+//  Function to create a sessionid for the user. 
+//
+//                        Parameters: N/A (No input parameters)
+//
+//                              Returns: SessionID (64 Chars)
+// 
+//=============================================================================
+function generateSessionID(){
+  var sessionid = "";
+// Generate a random 12 character sessionid
+  for(let i = 0; i < 12; i ++){
+    // Generate random char from allchars constant
+    var char = allChars.charAt(Math.floor(Math.random() * allChars.length));
+    // Add character to sessionid
+    sessionid += char;
+  }
+  //Hash sessionid to make 64 characters
+  sessionid = addHash(sessionid);
+  return sessionid
+}
 
 
 //=============================================================================
@@ -475,7 +502,47 @@ app.post("/register", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const username = req.body.username;
   const password = req.body.password;
-  console.log(username);
+
+  var passwordSalt = generatePassword(password);
+  var hashedPassword = passwordSalt[0];
+  var salt = passwordSalt[1];
+
+  db.query(
+    "INSERT INTO Staff (Username, Password, Salt, User_Privileges, Is_Active) VALUES (?, ?, ?, 0, 0)",
+    [username, hashedPassword, salt],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.send({ err: err });
+      }
+      //console.log(result);
+    }
+  );
+
+  var id = -1;
+  db.query(
+    "SELECT Staff_ID from Staff WHERE Username = ?",
+    [username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.send({ err: err });
+      }
+      //console.log(result);
+      id = result[0].Staff_ID;
+      console.log(id);
+      if(id === "-1"){
+        console.log("No ID");
+        res.send("Error");
+      } else {
+        var sessionid = generateSessionID();
+        sessions.push([sessionid, id]);
+        console.log("Current Sessions");
+        console.log(sessions);
+        res.send(sessionid);
+      }
+    }
+  );
 });
 
 
