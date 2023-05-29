@@ -40,12 +40,6 @@ const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
 var sessions = [];
 
 
-function setABC(){
-
-}
-
-
-
 //=============================================================================
 //                                databaseCreation()
 //  This function runs the db-creation.sql file. Database connection
@@ -264,31 +258,40 @@ function generatePassword(rawPassword){
 function checkPassword(username, rawPassword, salt){
   var correct = false;
   // Adds the salt to the password
-  var improvedPassword = addSalt(rawPassword, salt);
-  // Runs through every possible pepper
-  for(let i=0; i<allChars.length; i++){
-    improvedPassword = allChars.charAt(i) + improvedPassword;
-    // hashes the salt-pepper password
-    improvedPassword = addHash(improvedPassword);
-    // gets the password from the db
-    db.query(
-      "SELECT `password` FROM staff WHERE username = ?;",
-      [username],
-      (err, result) => {
-        if (err) {
-          console.log(err);
-        }
-        console.log(result);
-        // checks if the guess is correct
-        if(result === improvedPassword){
-          // sets correct to true
+  var saltedPassword = addSalt(rawPassword, salt);
+  console.log("salted password");
+  console.log(saltedPassword);
+
+  var correctPassword = "";
+  console.log("Username: " + username + " Salt: " + salt)
+
+  db.query(
+    "SELECT password FROM staff WHERE username = ?;",
+    [username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      //console.log(result);
+      correctPassword = result[0].password;
+      //console.log("Correct Password")
+      //console.log(correctPassword)
+      // Runs through every possible pepper
+      for(let i=0; i<allChars.length; i++){
+        var improvedPassword = addPepper(saltedPassword, allChars.charAt(i))
+        // hashes the salt-pepper password
+        improvedPassword = addHash(improvedPassword);
+        //console.log(improvedPassword);
+        // gets the password from the db
+        if(correctPassword === improvedPassword){
+          console.log("Found Match")
           correct = true;
         }
       }
-    );
-  }
-  // returns if the attempt was correct
-  return correct;
+      // returns if the attempt was correct
+      return correct;
+    }
+  );
 }
 
 
@@ -471,13 +474,13 @@ function cssInject(data) {
 function sanitiseInput(data){
   var clean = true;
   // Checks if SQL injected
-  if(sqlInject(data) === false){
+  if(sqlInject(data) === true){
     // Logs Injection to Console so Backend Admin can Monitor
     console.log("SQL INJECTION DETECTED ON INPUT: " + data);
     clean = false;
   }
   // Checks if Cross-Site-Scripting Injected
-  if(cssInject(data) === false){
+  if(cssInject(data) === true){
     // Logs Injection to Console so Backend Admin can Monitor
     console.log("CROSS-SITE-SCRIPTING DETECTED ON INPUT: " + data);
     clean = false;
@@ -503,46 +506,51 @@ app.post("/register", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  var passwordSalt = generatePassword(password);
-  var hashedPassword = passwordSalt[0];
-  var salt = passwordSalt[1];
+  if(sanitiseInput(username) === true && sanitiseInput(password)){
+    var passwordSalt = generatePassword(password);
+    var hashedPassword = passwordSalt[0];
+    var salt = passwordSalt[1];
 
-  db.query(
-    "INSERT INTO Staff (Username, Password, Salt, User_Privileges, Is_Active) VALUES (?, ?, ?, 0, 0)",
-    [username, hashedPassword, salt],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        res.send({ err: err });
+    db.query(
+      "INSERT INTO Staff (Username, Password, Salt, User_Privileges, Is_Active) VALUES (?, ?, ?, 0, 0)",
+      [username, hashedPassword, salt],
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          res.send({ err: err });
+        }
+        //console.log(result);
       }
-      //console.log(result);
-    }
-  );
+      );
 
-  var id = -1;
-  db.query(
-    "SELECT Staff_ID from Staff WHERE Username = ?",
-    [username],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        res.send({ err: err });
+      var id = -1;
+      db.query(
+        "SELECT Staff_ID from Staff WHERE Username = ?",
+        [username],
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            res.send({ err: err });
+          }
+        //console.log(result);
+        id = result[0].Staff_ID;
+        console.log(id);
+        if(id === "-1"){
+          console.log("No ID");
+          res.send("Error");
+        } else {
+          var sessionid = generateSessionID();
+          sessions.push([sessionid, id]);
+          console.log("New User Registered");
+          console.log("Current Sessions");
+          console.log(sessions);
+          res.send(sessionid);
+        }
       }
-      //console.log(result);
-      id = result[0].Staff_ID;
-      console.log(id);
-      if(id === "-1"){
-        console.log("No ID");
-        res.send("Error");
-      } else {
-        var sessionid = generateSessionID();
-        sessions.push([sessionid, id]);
-        console.log("Current Sessions");
-        console.log(sessions);
-        res.send(sessionid);
-      }
-    }
-  );
+    );
+  } else{
+    res.send("SQL/CSS Injection on Input")
+  }  
 });
 
 
@@ -563,7 +571,125 @@ app.post("/login", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const username = req.body.username;
   const password = req.body.password;
-  console.log(username);
+  if(sanitiseInput(username) === true && sanitiseInput(password)){
+    var getSalt = "";
+    db.query(
+      "SELECT Salt from Staff WHERE Username = ?",
+      [username],
+      async (err, result) => {
+        if (err) {
+          console.log(err);
+          res.send({ err: err });
+        } else {
+          getSalt = result;
+          console.log(getSalt);
+          if(getSalt.length === 0){
+            res.send("Error");
+            return null;
+          } else {
+            getSalt = getSalt[0].Salt;
+          }
+          
+          ///
+          var correct = false;
+          // Adds the salt to the password
+          var saltedPassword = addSalt(password, getSalt);
+          console.log("salted password");
+          console.log(saltedPassword);
+
+          var correctPassword = "";
+          console.log("Username: " + username + " Salt: " + getSalt)
+
+          db.query(
+            "SELECT password FROM staff WHERE username = ?;",
+            [username],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+              }
+          //console.log(result);
+          correctPassword = result[0].password;
+          //console.log("Correct Password")
+          //console.log(correctPassword)
+          // Runs through every possible pepper
+          for(let i=0; i<allChars.length; i++){
+            var improvedPassword = addPepper(saltedPassword, allChars.charAt(i))
+            // hashes the salt-pepper password
+            improvedPassword = addHash(improvedPassword);
+            //console.log(improvedPassword);
+            // gets the password from the db
+            if(correctPassword === improvedPassword){
+              console.log("Found Match")
+              correct = true;
+              db.query(
+                "SELECT Staff_ID from Staff WHERE Username = ?",
+                [username],
+                (err, result) => {
+                  if (err) {
+                    console.log(err);
+                    res.send({ err: err });
+                  }
+                  //console.log(result);
+                  id = result;
+                  id = id[0].Staff_ID;
+                  console.log(id);
+                  console.log("correct " + correct);
+                  if(correct === true){
+                    console.log("Login Success")
+                        if(id === "-1"){
+                          console.log("No ID");
+                          res.send("Error");
+                        } else {
+                          var sessionid = generateSessionID();
+                          sessions.push([sessionid, id]);
+                          console.log("New User Logged In");
+                          console.log("Current Sessions");
+                          console.log(sessions);
+                          res.send(sessionid);
+                        }
+                    }
+                }
+              );
+
+            }
+          }
+        }
+      );
+          ///
+        }
+      })
+      
+
+  } else {
+    res.send("SQL/CSS Injection on Input")
+  }
+});
+
+//=============================================================================
+//                               post(/logOut)
+//  Function to handle requests to log individual user out
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                      Parameters: SessionID (integer)
+//
+//                               Returns: N/A
+// 
+//=============================================================================
+app.post("/logOut", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  var sessionid = req.body.session;
+  var newSessions = [];
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] !== sessionid){
+      newSessions.push(session[i]);
+    }
+  }
+  sessions = newSessions;
+  //console.log("new sessions:");
+  //console.log(sessions);
+  res.send("Logged Out");
 });
 
 
@@ -589,7 +715,7 @@ app.post("/getStockItems", (req, res) => {
         console.log(err);
         res.send({ err: err });
       }
-      console.log(result);
+      //console.log(result);
       res.send(result);
     }
   );
@@ -1370,6 +1496,83 @@ app.post("/getStaffPrivilege", (req, res) => {
 
 
 //=============================================================================
+//                                  getAllProducts()
+//  Function to handle getting all product information from db
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                             Parameters:  N/A
+//
+//                      Returns: Product Information (Array)
+// 
+//=============================================================================
+function getAllProductInfo(){
+  //https://stackoverflow.com/questions/21131224/sorting-json-object-based-on-attribute
+  function sortByKey(array, key) {
+    return array.sort(function(a, b) {
+      var x = a[key];
+      var y = b[key];
+      return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+    });
+  }
+  db.query("SELECT Sales_Orders.SKU, (Sales_Orders.Qty) AS SQTY, Transaction_Date FROM Sales_Orders LEFT JOIN Sales_Transactions ON Sales_Orders.STID = Sales_Transactions.STID;", (err, result) => {
+    if (err) {
+      console.log(err);
+      result = "";
+    }
+
+    var products = []
+    for(let i = 0; i<result.length; i++){
+      var inProducts = false;
+      var pos = 0;
+      for(let j = 0; j<products.length; j++){
+        if(result[i].SKU === products[j].SKU){
+          inProducts= true;
+          pos = j;
+        }
+      }
+      if (inProducts === false){
+        products.push(result[i])
+      } else {
+        products[pos].SQTY += result[i].SQTY;
+        products[pos].Transaction_Date = result[i].Transaction_Date;
+      }
+    }
+    ABC = sortByKey(products, 'SQTY');
+    for(let i =0; i<ABC.length; i++){
+      if(i< Math.floor(ABC.length*0.2)){
+        ABC[i].ABCXYZ = "A"
+      }
+      if(i< Math.floor(ABC.length*0.5) && i >= Math.floor(ABC.length*0.2)){
+        ABC[i].ABCXYZ = "B"
+      }
+      if(i >= Math.floor(ABC.length*0.5)){
+        ABC[i].ABCXYZ = "C"
+      }
+    }
+
+    XYZ = sortByKey(ABC, 'Transaction_Date');
+    for(let i =0; i<XYZ.length; i++){
+      if(i> Math.floor(XYZ.length*0.5)){
+        XYZ[i].ABCXYZ += "X"
+      }
+      if(i<= Math.floor(XYZ.length*0.5) && i > Math.floor(XYZ.length*0.2)){
+        XYZ[i].ABCXYZ += "Y"
+      }
+      if(i <= Math.floor(XYZ.length*0.2)){
+        XYZ[i].ABCXYZ += "Z"
+      }
+    }
+    
+  
+    console.log(XYZ);
+  });
+}
+
+
+
+//=============================================================================
 //                                     Listener
 //  
 //  System runs backend server and listens on port (default 3001). When testing
@@ -1380,6 +1583,7 @@ app.post("/getStaffPrivilege", (req, res) => {
 app.listen(THIS_PORT, () => {
   // Checks to see if database exists - if not, creates it.
   //databaseCreation();
+  getAllProductInfo();
   console.log("Running Backend Server on port: " + THIS_PORT);
 });
 

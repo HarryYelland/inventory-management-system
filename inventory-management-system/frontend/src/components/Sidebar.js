@@ -52,6 +52,16 @@ function createPurchaseOrder() {
   }
 }
 
+function LogOut(){
+  if (window.confirm("Do you want to log out?") === true) {
+    Axios.post(BACKEND_ADDRESS + "/logOut", {
+      session : localStorage.getItem("session")
+    }).then((response) => {
+      localStorage.setItem("session", "");
+      window.location.href = "/";
+    });
+  }
+}
 
 // Sidebar component
 function Sidebar() {
@@ -91,7 +101,7 @@ function Sidebar() {
         </a>
       </div>
       <div className="menu-item-boundbox">
-        <a className="menu-item logout" href="/logout">
+        <a className="menu-item logout" onClick={LogOut}>
           Log Out
         </a>
       </div>

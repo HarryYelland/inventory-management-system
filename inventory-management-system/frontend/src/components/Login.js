@@ -29,7 +29,8 @@ export default function Login() {
       if(response){
         console.log(response.data);
         window.localStorage.setItem("session", response.data);
-        window.alert("Registered Account")
+        window.alert("Registered Account");
+        window.location.href("/stocklist");
       }
     })
   }
@@ -47,28 +48,23 @@ export default function Login() {
       if(response.data.message){
         setLoginStatus(response.data.message);
       } else {
-        setLoginStatus("Success, redirecting");
-        localStorage.setItem('user', [usernameLog, passwordLog]);
-        console.log(localStorage.getItem('user'));
+        localStorage.setItem('user', usernameLog);
+        if(response.data !== "Error"){
+          localStorage.setItem('session', response.data);
+          alert("Logged In")
+          window.location.href = "/stocklist"
+        } else {
+          alert("Error Logging In");
+        }
+        
       }
     })
   }
 
   return(
     <div className="Login">
-      <div className="loginMessage">
-        Username Rules
-        <ul>
-          <il>Must be at least 8 Characters</il><br/>
-          <il>Must <b>not</b> be more than 20 Characters</il><br/>
-          <il>Must not contain any special characters</il>
-        </ul>
-        Password Rules
-        <ul>
-          <il>Must be at least 8 Characters</il><br/>
-          <il>Must <b>not</b> be more than 40 Characters</il><br/>
-          <il>Must not contain any special characters</il>
-        </ul>
+      <div id="LoginAuto">
+        If you are not automatically redirected, your user details are incorrect, please try again.
       </div>
       <div className="loginMessage">
         <div className="LoginStatus">
