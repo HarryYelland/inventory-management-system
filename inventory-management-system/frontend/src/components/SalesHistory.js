@@ -4,6 +4,20 @@ import Axios from "axios";
 
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
+function editOrder(){
+    // Set the selected sales order ID in local storage
+    localStorage.setItem("salesOrder", selected);
+    // If no sales order is selected, alert the user and return function early
+    if (selected == -1) {
+        alert("Please select a sales order to view.");
+        return;
+    }
+    // Alert the user which order they will be viewing
+    alert("View Sales Order with ID: " + selected + ".");
+    // Redirect to the sales order view page
+    window.location.href = "/sales-order-edit";
+}
+
 // Functon to create a new sales order
 function createOrder() {
   // POST request to create a new sales order
@@ -174,7 +188,7 @@ function SalesHistory() {
           </a>
         </button>
         <button className="stock-list-edit-button">
-          <a href="/sales-order-add">
+          <a onClick={editOrder}>
             <img
               src={require("../icons/pencil-icon.png")}
               className="stock-list-edit-button-image"

@@ -6,6 +6,9 @@ import StockListEdit from "./components/StockListEdit";
 import StockListView from "./components/StockListView";
 import SalesHistory from "./components/SalesHistory";
 import PurchaseHistory from "./components/PurchaseHistory";
+import PurchaseOrder from "./components/PurchaseOrder";
+import PurchaseOrderProductAdd from "./components/PurchaseOrderProductAdd";
+import PurchaseOrderProductEdit from "./components/PurchaseOrderProductEdit";
 import SalesOrder from "./components/SalesOrder";
 import SalesOrderView from "./components/SalesOrderView";
 import SalesOrderProductAdd from "./components/SalesOrderProductAdd";
@@ -36,6 +39,9 @@ export default function App() {
           <Route path="/stocklist-view" element={<PrivateRoute><StockListView /></PrivateRoute>} />
           <Route path="/sales-history" element={<PrivateRoute><SalesHistory /></PrivateRoute>} />
           <Route path="/purchase-history" element={<PrivateRoute><PurchaseHistory/></PrivateRoute>}/>
+          <Route path="/purchase-order-add" element={<PurchaseOrder/>}/>
+          <Route path="/purchase-order-product-add" element={<PrivateRoute><PurchaseOrderProductAdd/></PrivateRoute>}/>
+          <Route path="/purchase-order-product-edit" element={<PrivateRoute><PurchaseOrderProductEdit/></PrivateRoute>}/>
           <Route path="/sales-order-add" element={<PrivateRoute><SalesOrder/></PrivateRoute>}/>
           <Route path="/sales-order-view" element={<PrivateRoute><SalesOrderView/></PrivateRoute>}/>
           <Route path="/sales-order-product-add" element={<PrivateRoute><SalesOrderProductAdd/></PrivateRoute>}/>

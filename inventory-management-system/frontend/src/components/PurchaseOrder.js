@@ -1,4 +1,4 @@
-import "./SalesHistory.css";
+import "./PurchaseHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
@@ -26,9 +26,9 @@ const deleteSelected = (event) => {
   // Ask user to confirm that they would like to delete the sales record
   if (window.confirm("Are you sure you want to delete this record?") === true) {
     // Post the sales order id to backend for deletion
-    Axios.post("http://localhost:3001/delSalesOrder", {
+    Axios.post("http://localhost:3001/delPurchaseOrder", {
       // Pass the SOID
-      SOID: delSelected,
+      POID: delSelected,
     }).then((response) => {
       // if successful, alert user that product has been deleted
       alert("You have deleted Product : ", event.target.value.toString());
@@ -61,7 +61,7 @@ const skuSelected = (event) => {
 // Function to handle dynamic table creation
 var Row = (props) => {
   // get each column of table
-  var { SOID, SKU, Product_Name, Qty, Retail_Price, Discount, Value } = props;
+  var { POID, SKU, Product_Name, Qty, Cost_Price, Value } = props;
   // create a radio button for each row
   var checkbox = (
     <input
@@ -78,7 +78,7 @@ var Row = (props) => {
     <button
       className="stock-list-delete-button"
       // set the value of the sales order to the button
-      value={SOID}
+      value={POID}
       // when user clicks the button, calls function to set the selected variable to the value of the button
       onClick={deleteSelected}
     >Delete
@@ -102,8 +102,7 @@ var Row = (props) => {
       <td>{skuBtn}</td>
       <td>{Product_Name}</td>
       <td>{Qty}</td>
-      <td>{Retail_Price}</td>
-      <td>{Discount}</td>
+      <td>{Cost_Price}</td>
       <td>{Value}</td>
       <td>{deleteBtn}</td>
     </tr>
@@ -121,8 +120,7 @@ var Table = (props) => {
           <th>SKU</th>
           <th>Product Name</th>
           <th>Quantity</th>
-          <th>Retail Price</th>
-          <th>Discount (%)</th>
+          <th>Cost Price</th>
           <th>Value</th>
           <th>Delete</th>
         </tr>
@@ -136,11 +134,10 @@ var Table = (props) => {
             SKU={row.SKU}
             Product_Name={row.Product_Name}
             Qty={row.Qty}
-            Retail_Price={row.Retail_Price}
-            Discount={row.Discount}
+            Cost_Price={row.Cost_Price}
             Value={row.Value}
             Delete={row.deleteBtn}
-            SOID={row.SOID}
+            POID={row.POID}
           />
         ))}
       </tbody>
@@ -148,56 +145,127 @@ var Table = (props) => {
   );
 };
 
+
+
+///
+// Function to handle dynamic table creation
+var Row2 = (props) => {
+  // get each column of table
+  var { SKU, Recommendation } = props;
+  return (
+    <tr>
+      <td>{SKU}</td>
+      <td>{Recommendation}</td>
+    </tr>
+  );
+};
+
+// Function for holding dynamic values within the table
+var Table2 = (props) => {
+  var { data } = props;
+  return (
+    <table>
+      <tbody>
+        <tr>
+          <th>SKU</th>
+          <th>Recommendation</th>
+        </tr>
+      </tbody>
+      <tbody>
+        {data.map((row, index) => (
+          // Map each row to a Row component
+          <Row2
+            key={`key-${index}`}
+            SKU={row.SKU}
+            Recommendation={row.Recommendation}
+          />
+        ))}
+      </tbody>
+    </table>
+  );
+};
+///
+
 // Main function for the sales order page
-function SalesOrder() {
+function PurchaseOrder() {
   // Create state variables for the list of sales lines
   // Two variables created so that the list can load all sales within a transaction. When the full list is loaded (both vars are equivalent), the page no longer has to re-render.
-  const [salesOrderLines, setSalesOrderLines] = useState([]);
-  const [prevSalesOrderLines, setPrevSalesOrderLines] = useState([-1]);
+  const [purchaseOrderLines, setPurchaseOrderLines] = useState([]);
+  const [prevPurchaseOrderLines, setPrevPurchaseOrderLines] = useState([-1]);
+  const [recommendationLines, setRecommendationLines] = useState([]);
+  const [prevRecommendationLines, setPrevRecommendationLines] = useState([-1]);
 
   // Re-renders page until the list of sales has completely loaded
   useEffect(() => {
     // Post request to get the sales order lines from backend
-    Axios.post("http://localhost:3001/getSalesOrder", {
+    Axios.post("http://localhost:3001/getPurchaseOrder", {
       // Pass the Sales Transaction ID
-      STID: localStorage.getItem("salesOrder"),
+      PTID: localStorage.getItem("purchaseOrder"),
     }).then((response) => {
       // if successful, log to console (TESTING PURPOSES)
       //console.log(response.data);
       
       // If the list of sales has changed, update the list
-      if (salesOrderLines.toString() !== prevSalesOrderLines.toString()) {
+      if (purchaseOrderLines.toString() !== prevPurchaseOrderLines.toString()) {
         // Create an array to hold the sales lines
-        let getSalesOrderLines = [];
+        let getPurchaseOrderLines = [];
         // For each sales line, add it to the array
         for (var i = 0; i < response.data.length; i++) {
-          getSalesOrderLines.push({
+          getPurchaseOrderLines.push({
             SKU: response.data[i].SKU,
             Product_Name: response.data[i].Product_Name,
             Qty: response.data[i].Qty,
-            Retail_Price: response.data[i].Retail_Price,
-            Discount: response.data[i].Discount,
+            Cost_Price: response.data[i].Cost_Price,
             Value: response.data[i].Value,
-            SOID: response.data[i].SOID,
+            POID: response.data[i].POD,
           });
         }
         // Update the list of sales lines
-        setPrevSalesOrderLines(salesOrderLines);
-        setSalesOrderLines(getSalesOrderLines);
+        setPrevPurchaseOrderLines(purchaseOrderLines);
+        setPurchaseOrderLines(getPurchaseOrderLines);
       }
     });
     // Re-render page if 
-  }, [salesOrderLines]);
+  }, [purchaseOrderLines]);
+
+  ////
+    // Re-renders page until the list of sales has completely loaded
+    useEffect(() => {
+      // Post request to get the sales order lines from backend
+      Axios.post("http://localhost:3001/getPurchaseRecommendations", {
+      }).then((response) => {
+        // if successful, log to console (TESTING PURPOSES)
+        //console.log(response.data);
+        
+        // If the list of sales has changed, update the list
+        if (recommendationLines.toString() !== prevRecommendationLines.toString()) {
+          // Create an array to hold the sales lines
+          let getRecommendationLines = [];
+          // For each sales line, add it to the array
+          for (var i = 0; i < response.data.length; i++) {
+            getRecommendationLines.push({
+              SKU: response.data[i].SKU,
+              Recommendation: response.data[i].Recommended,
+            });
+          }
+          // Update the list of sales lines
+          setPrevRecommendationLines(recommendationLines);
+          setRecommendationLines(getRecommendationLines);
+        }
+      });
+      // Re-render page if 
+    }, [recommendationLines]);
 
   return (
     <div className="stock-list">
       <h2 className="stock-list-title">
-        Sales Order: {localStorage.getItem("salesOrder")}
+        Purchase Order: {localStorage.getItem("purchaseOrder")}
       </h2>
-      <Table data={prevSalesOrderLines} className="stock-list-table" />
+      <Table data={prevPurchaseOrderLines} className="view" />
+      <Table2 data={prevRecommendationLines} className="recommendation" />
       <div className="stock-list-control-buttons">
         <button className="stock-list-add-button">
-          <a href="/sales-order-product-add">
+          <a href="/purchase-order-product-add">
             <img
               src={require("../icons/mathematics-sign-plus-outline-icon.png")}
               className="stock-list-add-button-image"
@@ -206,7 +274,7 @@ function SalesOrder() {
           </a>
         </button>
         <button className="stock-list-edit-button">
-          <a href="/sales-order-product-edit">
+          <a href="/purchase-order-product-edit">
             <img
               src={require("../icons/pencil-icon.png")}
               className="stock-list-edit-button-image"
@@ -219,4 +287,4 @@ function SalesOrder() {
   );
 }
 
-export default SalesOrder;
+export default PurchaseOrder;

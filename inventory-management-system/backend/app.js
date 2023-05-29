@@ -708,6 +708,7 @@ app.post("/logOut", (req, res) => {
 //=============================================================================
 app.post("/getStockItems", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  getRecommendations()
   db.query(
     "SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID;",
     (err, result) => {
@@ -834,7 +835,7 @@ app.post("/addProducts", (req, res) => {
   const product_cost_price = req.body.cost_price;
   const moq = req.body.moq;
   const product_stock = 0;
-  const abcxyz = "CZ";
+  const recommended = moq;
   var obsolete = 0;
   if (req.body.obsolete.value == false) {
     obsolete = 1;
@@ -868,16 +869,16 @@ app.post("/addProducts", (req, res) => {
       }
 
       db.query(
-        "INSERT INTO Product (Category_ID, ABCXYZ, Product_Name, Cost_Price, Retail_Price, Stock_Qty, MOQ, isObsolete) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+        "INSERT INTO Product (Category_ID, Product_Name, Cost_Price, Retail_Price, Stock_Qty, MOQ, isObsolete, Recommended) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
         [
           category_id,
-          abcxyz,
           product_name,
           product_cost_price,
           product_retail_price,
           product_stock,
           moq,
           obsolete,
+          recommended
         ],
         (err, result) => {
           if (err) {
@@ -1044,7 +1045,8 @@ app.post("/editProduct", (req, res) => {
 // 
 //=============================================================================
 app.post("/getPurchaseHistory", (req, res) => {
-  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS);
+  getRecommendations()
   db.query(
     "SELECT Purchase_Transactions.PTID, Purchase_Transactions.Order_Date, Purchase_Transactions.Delivery_Date, Staff.Username, SUM(Purchase_Orders.Qty * Product.Cost_Price) AS Value FROM Purchase_Transactions LEFT JOIN Purchase_Orders ON Purchase_Transactions.PTID = Purchase_Orders.PTID LEFT JOIN Staff ON Purchase_Transactions.Staff_ID = Staff.Staff_ID LEFT JOIN Product ON Product.SKU = Purchase_Orders.SKU GROUP BY Purchase_Transactions.PTID;",
     (err, result) => {
@@ -1075,6 +1077,7 @@ app.post("/getPurchaseHistory", (req, res) => {
 //=============================================================================
 app.post("/getSalesHistory", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  getRecommendations()
   db.query(
     "SELECT Sales_Transactions.STID, Sales_Transactions.Transaction_Date, Staff.Username, SUM(Sales_Orders.Qty * Product.Retail_Price) AS Value FROM Sales_Transactions LEFT JOIN Sales_Orders ON Sales_Transactions.STID = Sales_Orders.STID LEFT JOIN Staff ON Sales_Transactions.Staff_ID = Staff.Staff_ID LEFT JOIN Product ON Product.SKU = Sales_Orders.SKU GROUP BY Sales_Transactions.STID;",
     (err, result) => {
@@ -1092,7 +1095,7 @@ app.post("/getSalesHistory", (req, res) => {
 
 
 //=============================================================================
-//                               post(/addSalesHistory)
+//                               post(/addSalesOrder)
 //  Function to handle adding a new sales transaction
 //
 //  CORS whitelisting prevents requests from external sources
@@ -1108,6 +1111,38 @@ app.post("/addSalesOrder", (req, res) => {
   const staff_ID = req.body.Staff_ID;
   db.query(
     "INSERT INTO Sales_Transactions (Staff_ID) VALUES (?);",
+    [staff_ID],
+    (err, result) => {
+      if (err) {
+        //console.log(result);
+        console.log(err);
+        res.send({ err: err });
+      }
+      console.log(result);
+      res.send(result);
+    }
+  );
+});
+
+
+
+//=============================================================================
+//                               post(/addPurchaseOrder)
+//  Function to handle adding a new sales transaction
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                           Parameters:  Staff_ID (Integer)
+//
+//                                  Returns: N/A
+// 
+//=============================================================================
+app.post("/addPurchaseOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  const staff_ID = req.body.Staff_ID;
+  db.query(
+    "INSERT INTO Purchase_Transactions (Staff_ID) VALUES (?);",
     [staff_ID],
     (err, result) => {
       if (err) {
@@ -1141,6 +1176,70 @@ app.post("/getSalesOrder", (req, res) => {
   db.query(
     "SELECT Sales_Orders.SOID, Sales_Orders.SKU, Product.Product_Name, Sales_Orders.Qty, Product.Retail_Price, Sales_Orders.Discount, SUM(Sales_Orders.Qty * Product.Retail_Price * (100 - Sales_Orders.Discount) /100) AS Value FROM Sales_Orders LEFT JOIN Product ON Sales_Orders.SKU = Product.SKU WHERE STID = ? GROUP BY SKU;",
     [STID],
+    (err, result) => {
+      if (err) {
+        //console.log(result);
+        console.log(err);
+        res.send({ err: err });
+      }
+      //console.log("DATA: ", result);
+      res.send(result);
+    }
+  );
+});
+
+
+
+//=============================================================================
+//                             post(/getPurchaseOrder)
+//  Function to handle getting all purchase order information from purchase
+//  transaction
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                  Parameters:  Purchase Transaction ID (Integer)
+//
+//                        Returns: Purchase Order (Array)
+// 
+//=============================================================================
+app.post("/getPurchaseOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  const PTID = req.body.PTID;
+  db.query(
+    "SELECT Purchase_Orders.POID, Purchase_Orders.SKU, Product.Product_Name, Purchase_Orders.Qty, Product.Cost_Price, SUM(Purchase_Orders.Qty * Product.Cost_Price) AS Value FROM Purchase_Orders LEFT JOIN Product ON Purchase_Orders.SKU = Product.SKU WHERE PTID = ? GROUP BY SKU;",
+    [PTID],
+    (err, result) => {
+      if (err) {
+        //console.log(result);
+        console.log(err);
+        res.send({ err: err });
+      }
+      //console.log("DATA: ", result);
+      res.send(result);
+    }
+  );
+});
+
+
+
+
+//=============================================================================
+//                             post(/getPurchaseRecommendations)
+//  Function to handle getting all purchase order recommendations from product
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                  Parameters:  Purchase Transaction ID (Integer)
+//
+//                        Returns: Purchase Order (Array)
+// 
+//=============================================================================
+app.post("/getPurchaseRecommendations", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  db.query(
+    "SELECT SKU, Recommended FROM Product WHERE isObsolete = 0;",
     (err, result) => {
       if (err) {
         //console.log(result);
@@ -1204,6 +1303,52 @@ app.post("/addSalesOrderItem", (req, res) => {
 
 
 //=============================================================================
+//                             post(/addPurchaseOrderItem)
+//  Function to handle adding an item to a purchase order
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//  Parameters: Product_Name (String), PTID (Integer), Qty (Integer)
+//
+//                                    Returns: N/A
+// 
+//=============================================================================
+app.post("/addPurchaseOrderItem", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  const product_name = req.body.product_name;
+  const PTID = req.body.STID;
+  const Qty = req.body.quantity;
+  db.query(
+    "SELECT SKU FROM Product WHERE Product_Name = ?;",
+    [product_name],
+    (err, result) => {
+      if (err) {
+        //console.log(result);
+        console.log(err);
+        res.send({ err: err });
+      }
+      const SKU = result[0].SKU;
+      db.query(
+        "INSERT INTO Purchase_Orders (PTID, SKU, Qty) VALUES (?, ?, ?);",
+        [PTID, SKU, Qty],
+        (err, result) => {
+          if (err) {
+            //console.log(result);
+            console.log(err);
+            res.send({ err: err });
+          }
+          //console.log(result);
+          res.send(result);
+        }
+      );
+    }
+  );
+});
+
+
+
+//=============================================================================
 //                               post(/getProductsFromOrder)
 //  Function to handle getting product from Sales Order
 //
@@ -1240,6 +1385,42 @@ app.post("/getProductsFromOrder", (req, res) => {
 
 
 //=============================================================================
+//                               post(/getProductsFromPOrder)
+//  Function to handle getting product from Purchase Order
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  SKU (Integer), STID (Integer)
+//
+//                           Returns: Products (Array)
+// 
+//=============================================================================
+app.post("/getProductsFromPOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  const SKU = req.body.sku;
+  const PTID = req.body.PTID;
+  if (SKU == -1) {
+    console.log("Error with sku");
+    return "error";
+  }
+  db.query(
+    "SELECT * FROM Purchase_Orders LEFT JOIN Product ON Purchase_Orders.SKU = Product.SKU WHERE Purchase_Orders.SKU = ? AND Purchase_Orders.PTID = ?;",
+    [SKU, PTID],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.send({ err: err });
+      }
+      //console.log(result);
+      res.send(result);
+    }
+  );
+});
+
+
+
+//=============================================================================
 //                               post(/delSalesOrder)
 //  Function to handle deleting a sales order from the system using the sales
 //  order id (SOID)
@@ -1259,6 +1440,38 @@ app.post("/delSalesOrder", (req, res) => {
   db.query(
     "DELETE FROM Sales_Orders WHERE SOID = ?;",
     [SOID],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.send({ err: err });
+      }
+      console.log(result);
+      res.send(result);
+    }
+  );
+});
+
+
+//=============================================================================
+//                               post(/delPurchaseOrder)
+//  Function to handle deleting a purchase order from the system using the
+//  purchase order id (POID)
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                          Parameters:  POID (Integer)
+//
+//                                Returns: N/A
+// 
+//=============================================================================
+app.post("/delSalesOrder", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  const POID = req.body.POID;
+  console.log(POID);
+  db.query(
+    "DELETE FROM Purchase_Orders WHERE POID = ?;",
+    [POID],
     (err, result) => {
       if (err) {
         console.log(err);
@@ -1496,8 +1709,8 @@ app.post("/getStaffPrivilege", (req, res) => {
 
 
 //=============================================================================
-//                                  getAllProducts()
-//  Function to handle getting all product information from db
+//                                  getRecommendations()
+//  Function to handle making purchase recommendations in the ABCXYZ format
 //
 //  CORS whitelisting prevents requests from external sources
 //  (only allows frontend address).
@@ -1507,7 +1720,7 @@ app.post("/getStaffPrivilege", (req, res) => {
 //                      Returns: Product Information (Array)
 // 
 //=============================================================================
-function getAllProductInfo(){
+function getRecommendations(){
   //https://stackoverflow.com/questions/21131224/sorting-json-object-based-on-attribute
   function sortByKey(array, key) {
     return array.sort(function(a, b) {
@@ -1516,7 +1729,7 @@ function getAllProductInfo(){
       return ((x < y) ? -1 : ((x > y) ? 1 : 0));
     });
   }
-  db.query("SELECT Sales_Orders.SKU, (Sales_Orders.Qty) AS SQTY, Transaction_Date FROM Sales_Orders LEFT JOIN Sales_Transactions ON Sales_Orders.STID = Sales_Transactions.STID;", (err, result) => {
+  db.query("SELECT Sales_Orders.SKU, (Sales_Orders.Qty) AS SQTY, COUNT(Sales_Orders.SKU) AS Tally, Product.Cost_Price, Product.MOQ FROM Sales_Orders LEFT JOIN Sales_Transactions ON Sales_Orders.STID = Sales_Transactions.STID RIGHT JOIN Product ON Sales_Orders.SKU = Product.SKU WHERE Sales_Transactions.Transaction_Date >= curdate() - interval 1 year GROUP BY Sales_Orders.SKU;", (err, result) => {
     if (err) {
       console.log(err);
       result = "";
@@ -1536,7 +1749,9 @@ function getAllProductInfo(){
         products.push(result[i])
       } else {
         products[pos].SQTY += result[i].SQTY;
-        products[pos].Transaction_Date = result[i].Transaction_Date;
+        products[pos].Tally = result[i].Tally;
+        products[pos].Cost_Price = result[i].Cost_Price;
+        products[pos].MOQ = result[i].MOQ;
       }
     }
     ABC = sortByKey(products, 'SQTY');
@@ -1552,21 +1767,81 @@ function getAllProductInfo(){
       }
     }
 
-    XYZ = sortByKey(ABC, 'Transaction_Date');
+    XYZ = sortByKey(ABC, 'Tally');
+    XYZ = XYZ.reverse();
     for(let i =0; i<XYZ.length; i++){
-      if(i> Math.floor(XYZ.length*0.5)){
+      if(i< Math.floor(XYZ.length*0.2)){
         XYZ[i].ABCXYZ += "X"
       }
-      if(i<= Math.floor(XYZ.length*0.5) && i > Math.floor(XYZ.length*0.2)){
+      if(i>= Math.floor(XYZ.length*0.2) && i < Math.floor(XYZ.length*0.5)){
         XYZ[i].ABCXYZ += "Y"
       }
-      if(i <= Math.floor(XYZ.length*0.2)){
+      if(i >= Math.floor(XYZ.length*0.5)){
         XYZ[i].ABCXYZ += "Z"
       }
     }
-    
   
-    console.log(XYZ);
+    //console.log(XYZ);
+
+    db.query("SELECT SUM(Cost_Price * Qty) AS Total FROM Purchase_Orders LEFT JOIN Product ON Purchase_Orders.SKU = Product.SKU GROUP BY Purchase_Orders.POID;", (err, result) => {
+      if (err) {
+        console.log(err);
+        result = "";
+      }
+      var budget = 0;
+      var ptids = [];
+      for(let k=0; k<result.length; k++){
+        budget += result[k].Total;
+        if(ptids.includes(result[k].PTID) === false){
+          ptids.push(result[k].PTID)
+        }
+      }
+      budget = budget/ptids.length;
+      budget = Math.floor(budget);
+      //console.log(budget);
+
+      var recommendations = [];
+
+      for(let n=0; n<XYZ.length; n++){
+        if(XYZ[n].ABCXYZ === "AX"){
+          XYZ[n].Budget = 5;
+        }
+        if(XYZ[n].ABCXYZ === "AY" || XYZ[n].ABCXYZ === "BX"){
+          XYZ[n].Budget = 4;
+        }
+        if(XYZ[n].ABCXYZ === "AZ" || XYZ[n].ABCXYZ === "BY" || XYZ[n].ABCXYZ === "CX"){
+          XYZ[n].Budget = 3;
+        }
+        if(XYZ[n].ABCXYZ === "BZ" || XYZ[n].ABCXYZ === "CY"){
+          XYZ[n].Budget = 2;
+        }
+        if(XYZ[n].ABCXYZ === "CZ"){
+          XYZ[n].Budget = 1;
+        }
+      }
+      XYZ = sortByKey(XYZ, 'Budget');
+      XYZ.reverse();
+      //console.log(XYZ);
+
+      for(let o = 0; o < XYZ.length; o++){
+        var quantity = XYZ[o].Budget * XYZ[o].MOQ;
+        recommendations.push([XYZ[o].SKU, quantity]);
+        budget -= (quantity * XYZ[o].Cost_Price);
+        if(budget <=0){
+          break;
+        }
+      }
+      //console.log(recommendations);
+      //console.log(budget);
+      for(p = 0; p<recommendations.length; p++){
+        db.query("UPDATE Product SET Recommended = ? WHERE SKU = ?;", [recommendations[p][1], recommendations[p][0]], (err, result) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
+      console.log("Recommendations Updated");
+    });
   });
 }
 
@@ -1583,7 +1858,7 @@ function getAllProductInfo(){
 app.listen(THIS_PORT, () => {
   // Checks to see if database exists - if not, creates it.
   //databaseCreation();
-  getAllProductInfo();
+  getRecommendations();
   console.log("Running Backend Server on port: " + THIS_PORT);
 });
 

@@ -7,6 +7,58 @@ const BACKEND_ADDRESS = 'http://localhost:3001';
 // Initialise a variable to hold the selected item from the table. Start at -1 to indicate no item selected. (Will use to error out if function called with val -1)
 var selected = -1;
 
+function editOrder(){
+  // Set the selected sales order ID in local storage
+  localStorage.setItem("purchaseOrder", selected);
+  // If no sales order is selected, alert the user and return function early
+  if (selected == -1) {
+      alert("Please select a Purchase order to view.");
+      return;
+  }
+  // Alert the user which order they will be viewing
+  alert("View Purchase Order with ID: " + selected + ".");
+  // Redirect to the sales order view page
+  window.location.href = "/purchase-order-edit";
+}
+
+// Functon to create a new sales order
+function createOrder() {
+// POST request to create a new sales order
+Axios.post(BACKEND_ADDRESS + "/addPurchaseOrder", {
+  // Sets Staff ID to 1
+
+  // -->> CHANGE TO USERS ID WHEN AUTH TOKENS WORKING <<--
+  Staff_ID: 1,
+
+
+}).then((response) => {
+  // If successful, set salesOrder to the new sales order ID ready for the next page
+  console.log(response);
+  localStorage.setItem("purchaseOrder", response.data.insertId);
+  // Alert the user to the creation of new sales order
+  alert("Created Purchase Order with ID: " + response.data.insertId + ".");
+  // Redirect to the new sales order page
+  window.location.href = "/purchase-order-add";
+});
+}
+
+
+// Function to view the selected sales order
+function viewOrder() {
+  // Set the selected sales order ID in local storage
+  localStorage.setItem("purchaseOrder", selected);
+  // If no sales order is selected, alert the user and return function early
+  if (selected == -1) {
+      alert("Please select a Purchase order to view.");
+      return;
+  }
+  // Alert the user which order they will be viewing
+  alert("View Purchase Order with ID: " + selected + ".");
+  // Redirect to the sales order view page
+  window.location.href = "/purchase-order-view";
+}
+
+
 // Function to handle the radio button selection
 const radioSelected = (event) => {
   // Set the selected variable to the value of the selected radio button
@@ -14,7 +66,7 @@ const radioSelected = (event) => {
   // Inform the user that they have selected an item from the table (to ensure they don't edit the wrong item)
   alert("You have selected PTID: ", event.target.value.toString());
   // Store the selected item value in local storage
-  localStorage.setItem("PTID", event.target.value);
+  localStorage.setItem("purchaseOrder", event.target.value);
 };
 
 // Function to handle dynamic table creation
@@ -118,16 +170,16 @@ function PurchaseHistory() {
       <Table data={prevPurchaseHistory} className="stock-list-table" />
       <div className="stock-list-control-buttons">
         <button className="stock-list-add-button">
-          <a href="/stocklist-add">
+          <a onClick={createOrder}>
             <img
               src={require("../icons/mathematics-sign-plus-outline-icon.png")}
               className="stock-list-add-button-image"
-              alt="Add New Product"
+              alt="Add New Order"
             />
           </a>
         </button>
         <button className="stock-list-view-button">
-          <a href="/stocklist-view">
+          <a onClick={viewOrder}>
             <img
               src={require("../icons/magnifier-glass-icon.png")}
               className="stock-list-view-button-image"
@@ -136,7 +188,7 @@ function PurchaseHistory() {
           </a>
         </button>
         <button className="stock-list-edit-button">
-          <a href="/stocklist-edit">
+          <a onClick={editOrder}>
             <img
               src={require("../icons/pencil-icon.png")}
               className="stock-list-edit-button-image"
@@ -148,5 +200,7 @@ function PurchaseHistory() {
     </div>
   );
 }
+
+{/*  */}
 
 export default PurchaseHistory;
