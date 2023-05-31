@@ -37,3 +37,23 @@ For the backend
   cd backend
   node app.js
 ```
+
+## Run Testing
+
+Before running testing, please ensure that ports 3000 and 3001 (default ports) are not currently being used. Also ensure that the latest version of MySQL is installed.
+
+To run this project, create two seperate terminals to manage the frontend and backend of the system. 
+
+For the Frontend
+
+```bash
+  cd frontend
+  npm start inventory-managent-system
+```
+
+For the backend
+
+```bash
+  cd backend
+  npm test
+```
