@@ -1,8 +1,18 @@
+//=============================================================================
+//                            Stock List Category (Frontend)
+//
+//  This file is for adding a new category from the stock list
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./StockList.css";
 import Axios from "axios";
 
+//Backend server address
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
+// function for submitting a new category
 const submit = () => {
   console.log(
     "submitting category",
@@ -18,6 +28,7 @@ const submit = () => {
   });
 };
 
+// function for handling new category page
 function StockListCategory() {
   return (
     <div className="stock-list">

@@ -1,15 +1,22 @@
+//=============================================================================
+//                            StockList (Frontend)
+//
+//  This file is for loading all stock items and displaying them in a stocklist
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+//Backend server address
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
+// selected stock item variable
 var selected = -1;
-//console.log(selected);
 
-//stockItems is a placeholder array of objects that will be replaced by a call to the database to select from products
-// SELECT SKU, Product_Name, Stock_Quantity FROM Product LEFT JOIN Qty ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Delivery_Date ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Delivery_Date > CURRENT_DATE
-
+// function to handle selecting a stock item
 const radioSelected = (event) => {
   selected = event.target.value;
   alert("You have selected SKU: " + event.target.value);
@@ -17,6 +24,7 @@ const radioSelected = (event) => {
   //sessionStorage.getItem("selectedSKU");
 };
 
+// function for dynamically creating a row
 var Row = (props) => {
   var { SKU, Description, Quantity, OnOrder } = props;
   var checkbox = (
@@ -38,6 +46,7 @@ var Row = (props) => {
   );
 };
 
+// function for dynamically creating table
 var Table = (props) => {
   var { data } = props;
   return (
@@ -67,7 +76,10 @@ var Table = (props) => {
   );
 };
 
+// function to handle loading the stock list
 function StockList() {
+
+  // reloads until every stock item loaded
   const [stockItems, setStockItems] = useState([]);
   const [prevStockItems, setPrevStockItems] = useState([-1]);
   useEffect(() => {
@@ -95,14 +107,6 @@ function StockList() {
     });
   }, [stockItems]);
 
-  //console.log(stockItems);
-  //console.log(prevStockItems);
-
-  //var stockItems = [
-  //  { SKU: 1, Description: "Product 1", Quantity: 5, OnOrder: 15 },
-  //  { SKU: 2, Description: "Product 2", Quantity: 10, OnOrder: 5 },
-  //  { SKU: 3, Description: "Product 3", Quantity: 15, OnOrder: 10 },
-  //];
 
   return (
     <div className="stock-list">

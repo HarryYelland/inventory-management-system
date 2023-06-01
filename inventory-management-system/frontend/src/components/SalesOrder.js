@@ -1,3 +1,13 @@
+//=============================================================================
+//                            Sales Order (Frontend)
+//
+//  This file is the loading of sales order (consists of all products within
+//  a sales transaction)
+//
+//                              By Harry Yelland
+//=============================================================================
+
+
 import "./SalesHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";

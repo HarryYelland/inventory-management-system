@@ -1,20 +1,27 @@
+//=============================================================================
+//                            Settings (Frontend)
+//
+//  This file is for changing the settings (privileges, activation) of users
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./Settings.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+//Variable for managing the selected user
 var selected = -1;
-//console.log(selected);
 
+//Backend server address
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
-//stockItems is a placeholder array of objects that will be replaced by a call to the database to select from products
-// SELECT SKU, Product_Name, Stock_Quantity FROM Product LEFT JOIN Qty ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Delivery_Date ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Delivery_Date > CURRENT_DATE
-
+//Function for activating a user account
 function activateUser() {
   if (selected === -1){
     return null;
   }
-
+  // Informs user of activation
   if (window.confirm("Activate User (Staff ID: " + selected + ")?") === true) {
     Axios.post(BACKEND_ADDRESS + "/setStaffActive", {
       Staff_ID: selected,
@@ -27,12 +34,14 @@ function activateUser() {
   }
 }
 
+// Function for handling deactivating a user account
 function deactivateUser() {
   if (selected === -1){
     return null;
   }
+  //demotes user before deactivating
   giveSales();
-
+  //Confirms user deactivating a user account
   if (window.confirm("deactivate User (Staff ID: " + selected + ")?") === true) {
     Axios.post(BACKEND_ADDRESS + "/setStaffDeactive", {
       session: window.localStorage.getItem("session"),
@@ -45,6 +54,7 @@ function deactivateUser() {
   }
 }
 
+// function for giving selected user admin privileges
 function giveAdmin() {
   if (selected === -1){
     return null;
@@ -62,6 +72,7 @@ function giveAdmin() {
   }
 }
 
+// function for giving selected user purchasing privileges
 function givePurchasing() {
   if (selected === -1){
     return null;
@@ -79,6 +90,7 @@ function givePurchasing() {
   }
 }
 
+// function for giving selected user sales privileges
 function giveSales() {
   if (selected === -1){
     return null;
@@ -96,13 +108,14 @@ function giveSales() {
   }
 }
 
-
+// function for selecting a user
 const radioSelected = (event) => {
   selected = event.target.value;
   localStorage.setItem("staffID", event.target.value);
   console.log(selected);
 };
 
+// function for dynamically generating table rows
 var Row = (props) => {
   var { Staff_ID, Username, User_Privileges, Is_Active } = props;
   var checkbox = (
@@ -136,6 +149,7 @@ var Row = (props) => {
   );
 };
 
+// function for dynamically generating table rows
 var Table = (props) => {
   var { data } = props;
   return (
@@ -165,7 +179,9 @@ var Table = (props) => {
   );
 };
 
+// function for handling settings page
 function Settings() {
+  // reloads page until all staff loaded
   const [staffList, setStaffList] = useState([]);
   const [prevStaffList, setPrevStaffList] = useState([-1]);
   useEffect(() => {
@@ -187,7 +203,6 @@ function Settings() {
       }
     });
   }, [staffList]);
-
 
   return (
     <div className="stock-list">

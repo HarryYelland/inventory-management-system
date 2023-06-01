@@ -1,12 +1,20 @@
+//=============================================================================
+//                         Purchase Order Product Edit (Frontend)
+//
+//  This file is the editing product details on  a purchase order
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
-// Function to handle submitting the product to the sales order
+// Function to handle submitting the product to the purchase order
 const submit = () => {
-  // POST request to the backend to submit the item to the sales order
+  // POST request to the backend to submit the item to the purchase order
   Axios.post(BACKEND_ADDRESS + "/addPurchaseOrderItem", {
     // Pass the transaction id to associate item to order
     PTID: localStorage.getItem("purchaseOrder"),
@@ -26,7 +34,7 @@ const submit = () => {
   });
 };
 
-// Main function for editing a product to a sales order page
+// Main function for editing a product to a purchase order page
 function PurchaseOrderProductEdit() {
   // State variable to store the list of products
   const [productList, setProductList] = useState([]);

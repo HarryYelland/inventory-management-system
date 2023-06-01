@@ -1,3 +1,14 @@
+//=============================================================================
+//                              App.js (Frontend)
+//
+//  This is the main frontend controlling file. This handles all user interfaces
+//  of the frontend (http://localhost:3000). Connects to the backend 
+//  (http://localhost:3001) for data retrieval. 
+//
+//                              By Harry Yelland
+//=============================================================================
+
+
 import StockList from "./components/StockList";
 import StockListAdd from "./components/StockListAdd";
 import StockListCategory from "./components/StockListCategory";

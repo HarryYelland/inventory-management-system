@@ -1,16 +1,24 @@
+//=============================================================================
+//                            Purchase Order Add (Frontend)
+//
+//  This file is for adding items to the purchase order
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
-// Function to handle submitting item to sales order
+// Function to handle submitting item to purchase order
 const submit = () => {
-  // POST request to the backend to submit the item to the sales order
+  // POST request to the backend to submit the item to the purchase order
   Axios.post(BACKEND_ADDRESS + "/addPurchaseOrderItem", {
     // Pass the transaction id to associate item to order
     PTID: localStorage.getItem("purchaseOrder"),
-    // Pass the product name
+    // Pass the purchase name
     product_name: document.getElementById("product-selection").value,
     // Pass the quantity
     quantity: document.getElementById("quantity").value,
@@ -19,14 +27,14 @@ const submit = () => {
     // log the response (testing purposes only)
     // console.log(response);
 
-    // Alert the user that the product has been added.
+    // Alert the user that the purchase has been added.
     alert("Product Added to Purchase Order: ", localStorage.getItem("purchaseOrder"), ".");
     // Reload the page
     window.location.href = "/purchase-order-add";
   });
 };
 
-// Main function for adding a product to a sales order page
+// Main function for adding a product to a purchase order page
 function PurchaseOrderProductAdd() {
   // State variable to store the list of products
   const [productList, setProductList] = useState([]);

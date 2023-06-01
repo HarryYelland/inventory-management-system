@@ -1,3 +1,11 @@
+//=============================================================================
+//                            Reports (Frontend)
+//
+//  This file is for generating reports and allowing the user to download them
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./Reports.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";

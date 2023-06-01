@@ -1,3 +1,11 @@
+//=============================================================================
+//                       Sales Order Product Add (Frontend)
+//
+//  This file is for adding products to a sales order
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";

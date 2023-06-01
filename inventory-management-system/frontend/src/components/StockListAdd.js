@@ -1,13 +1,26 @@
+//=============================================================================
+//                            Stock List Add (Frontend)
+//
+//  This file is for adding items to the stock list (create new items)
+//
+//                              By Harry Yelland
+//=============================================================================
+//                               References
+//
 //https://stackoverflow.com/questions/50644976/react-button-onclick-redirect-page
+//
+//=============================================================================
+
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
-
+// Address of backend server
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
+// Function for submitting a new product to backend
 const submit = () => {
-  Axios.post("http://localhost:3002/addProducts", {
+  Axios.post(BACKEND_ADDRESS + "/addProducts", {
     product_name: document.getElementById("product-name").value,
     category: document.getElementById("category-selection").value,
     cost_price: document.getElementById("cost-price").value,
@@ -20,13 +33,13 @@ const submit = () => {
   });
 };
 
+// Function for handling page for adding items to the stock list
 function StockListAdd() {
+  // reloads until loaded all categories 
   const [categoryItems, setCategoryItems] = useState([]);
   const [prevCategoryItems, setPrevCategoryItems] = useState([-1]);
   useEffect(() => {
     Axios.post(BACKEND_ADDRESS + "/getCategories", {
-      //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
-      dbQuery: "",
     }).then((response) => {
       if (categoryItems.toString() !== prevCategoryItems.toString()) {
         let getCategoryItems = [];

@@ -1,3 +1,12 @@
+//=============================================================================
+//                            Sidebar (Frontend)
+//
+//  This file handles the sidebar displayed throughout the system
+//
+//                              By Harry Yelland
+//=============================================================================
+
+
 import React from "react";
 import Axios from "axios";
 import "./Sidebar.css";

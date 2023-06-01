@@ -1,11 +1,11 @@
-// Add Comments/Refactoring from this file and below
-
 import "./SalesHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+//Backend address defined
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
+// Dynamically create rows
 var Row = (props) => {
   var { SKU, Product_Name, Qty, Retail_Price, Discount, Value } = props;
   return (
@@ -20,6 +20,7 @@ var Row = (props) => {
   );
 };
 
+//Dynamically create table
 var Table = (props) => {
   var { data } = props;
   return (
@@ -51,20 +52,21 @@ var Table = (props) => {
   );
 };
 
+//Function for handling viewing a sales order.
 function SalesOrderView() {
-  const [stockItems, setStockItems] = useState([]);
-  const [prevStockItems, setPrevStockItems] = useState([-1]);
+  const [salesOrder, setSalesOrder] = useState([]);
+  const [prevSalesOrder, setPrevSalesOrder] = useState([-1]);
   useEffect(() => {
     Axios.post(BACKEND_ADDRESS + "/getSalesOrder", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       STID: localStorage.getItem("salesOrder"),
       session: localStorage.getItem("session")
     }).then((response) => {
-      if (stockItems.toString() !== prevStockItems.toString()) {
-        let getStockItems = [];
+      if (salesOrder.toString() !== prevSalesOrder.toString()) {
+        let getSalesOrder = [];
         for (var i = 0; i < response.data.length; i++) {
           //console.log("Sku at pos " + i + " is " + response.data[i].SKU + "");
-          getStockItems.push({
+          getSalesOrder.push({
             SKU: response.data[i].SKU,
             Product_Name: response.data[i].Product_Name,
             Qty: response.data[i].Qty,
@@ -73,11 +75,11 @@ function SalesOrderView() {
             Value: response.data[i].Value,
           });
         }
-        setPrevStockItems(stockItems);
-        setStockItems(getStockItems);
+        setPrevSalesOrder(salesOrder);
+        setSalesOrder(getSalesOrder);
       }
     });
-  }, [stockItems]);
+  }, [salesOrder]);
   //console.log(stockItems);
   //console.log(prevStockItems);
 
@@ -90,7 +92,7 @@ function SalesOrderView() {
   return (
     <div className="stock-list">
       <h2 className="stock-list-title">Sales Order: {localStorage.getItem("salesOrder")}</h2>
-      <Table data={prevStockItems} className="stock-list-table" />
+      <Table data={prevSalesOrder} className="stock-list-table" />
     </div>
   );
 }

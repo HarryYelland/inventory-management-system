@@ -1,3 +1,11 @@
+//=============================================================================
+//                            Sales History (Frontend)
+//
+//  This file is the loading of all sales transactions
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./SalesHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";

@@ -1,3 +1,12 @@
+//=============================================================================
+//                            Login (Frontend)
+//
+//  This file is for registration/login of accounts to the system
+//
+//                              By Harry Yelland
+//=============================================================================
+
+
 import React, { useState } from "react";
 import Axios from 'axios';
 

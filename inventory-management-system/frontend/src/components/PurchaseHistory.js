@@ -1,3 +1,11 @@
+//=============================================================================
+//                            Purchase History (Frontend)
+//
+//  This file is the loading of all purchase transactions 
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./PurchaseHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
@@ -8,49 +16,49 @@ const BACKEND_ADDRESS = 'http://localhost:3001';
 var selected = -1;
 
 function editOrder(){
-  // Set the selected sales order ID in local storage
+  // Set the selected purchase order ID in local storage
   localStorage.setItem("purchaseOrder", selected);
-  // If no sales order is selected, alert the user and return function early
+  // If no purchase order is selected, alert the user and return function early
   if (selected == -1) {
       alert("Please select a Purchase order to view.");
       return;
   }
   // Alert the user which order they will be viewing
   alert("View Purchase Order with ID: " + selected + ".");
-  // Redirect to the sales order view page
+  // Redirect to the purchase order view page
   window.location.href = "/purchase-order-add";
 }
 
-// Functon to create a new sales order
+// Functon to create a new purchase order
 function createOrder() {
-// POST request to create a new sales order
+// POST request to create a new purchase order
 Axios.post(BACKEND_ADDRESS + "/addPurchaseOrder", {
   session: window.localStorage.getItem("session")
 
 }).then((response) => {
-  // If successful, set salesOrder to the new sales order ID ready for the next page
+  // If successful, set purchase to the new sales order ID ready for the next page
   console.log(response);
   localStorage.setItem("purchaseOrder", response.data.insertId);
-  // Alert the user to the creation of new sales order
+  // Alert the user to the creation of new purchase order
   alert("Created Purchase Order with ID: " + response.data.insertId + ".");
-  // Redirect to the new sales order page
+  // Redirect to the new purchase order page
   window.location.href = "/purchase-order-add";
 });
 }
 
 
-// Function to view the selected sales order
+// Function to view the selected purchase order
 function viewOrder() {
-  // Set the selected sales order ID in local storage
+  // Set the selected purchase order ID in local storage
   localStorage.setItem("purchaseOrder", selected);
-  // If no sales order is selected, alert the user and return function early
+  // If no purchase order is selected, alert the user and return function early
   if (selected == -1) {
       alert("Please select a Purchase order to view.");
       return;
   }
   // Alert the user which order they will be viewing
   alert("View Purchase Order with ID: " + selected + ".");
-  // Redirect to the sales order view page
+  // Redirect to the purchase order view page
   window.location.href = "/purchase-order-view";
 }
 

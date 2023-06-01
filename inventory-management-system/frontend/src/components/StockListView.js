@@ -1,12 +1,24 @@
+//=============================================================================
+//                            Stock List View (Frontend)
+//
+//  This file is for the viewing of an item from within the stocklist.
+//
+//                              By Harry Yelland
+//=============================================================================
+//                                References
+//
 //https://stackoverflow.com/questions/50644976/react-button-onclick-redirect-page
-
+//				
+//=============================================================================
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 
+// Backend-server address
 const BACKEND_ADDRESS = 'http://localhost:3001';
 
-function StockListEdit() {
+// Function to handle viewing items in stock list
+function StockListView() {
   const [sku, setSKU] = useState(localStorage.getItem("sku"));
   const [prevSku, setPrevSKU] = useState(-1);
   const [categoryItems, setCategoryItems] = useState([]);
@@ -14,8 +26,7 @@ function StockListEdit() {
 
   useEffect(() => {
     Axios.post(BACKEND_ADDRESS + "/getCategories", {
-      //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
-      dbQuery: "",
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       if (categoryItems.toString() !== prevCategoryItems.toString()) {
         let getCategoryItems = [];
@@ -27,15 +38,11 @@ function StockListEdit() {
       }
     });
   }, [categoryItems]);
-  //localStorage.setItem("sku", 1);
-
-  //console.log("SKU: ", localStorage.getItem("sku"));
 
   //LOAD ALL PRODUCT DETAILS HERE
   useEffect(() => {
     //console.log("SKU: ", localStorage.getItem("sku"));
     Axios.post(BACKEND_ADDRESS + "/getProduct", {
-      //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       sku: sku,
       session: window.localStorage.getItem("session")
     }).then((response) => {
@@ -53,7 +60,6 @@ function StockListEdit() {
       }
     });
     Axios.post(BACKEND_ADDRESS + "/getCategory", {
-      //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       category_id: localStorage.getItem("Product_Category"),
       session: window.localStorage.getItem("session")
     }).then((response) => {
@@ -61,15 +67,6 @@ function StockListEdit() {
       localStorage.setItem("Category_Name", response.data[0].Category_Name);
     });
   }, [sku]);
-
-  /* console.log(
-    "Product Details",
-    localStorage.getItem("Product_Name"),
-    localStorage.getItem("Product_Category"),
-    localStorage.getItem("Product_Cost"),
-    localStorage.getItem("Product_Retail"),
-    localStorage.getItem("Product_MOQ")
-  ) */
 
   return (
     <div className="stock-list">
@@ -160,4 +157,4 @@ function StockListEdit() {
   );
 }
 
-export default StockListEdit;
+export default StockListView;

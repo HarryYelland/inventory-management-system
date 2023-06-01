@@ -1,3 +1,11 @@
+//=============================================================================
+//                        Sales Order Product Edit (Frontend)
+//
+//  This file is for editing products within a sales order
+//
+//                              By Harry Yelland
+//=============================================================================
+
 import "./StockList.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";

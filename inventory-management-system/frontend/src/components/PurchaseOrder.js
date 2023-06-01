@@ -1,3 +1,12 @@
+//=============================================================================
+//                            Purchase Order (Frontend)
+//
+//  This file is the loading of a purchase order (all items within a transaction)
+//
+//                              By Harry Yelland
+//=============================================================================
+
+
 import "./PurchaseHistory.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
@@ -193,10 +202,10 @@ var Table2 = (props) => {
 };
 ///
 
-// Main function for the sales order page
+// Main function for the purchase order page
 function PurchaseOrder() {
-  // Create state variables for the list of sales lines
-  // Two variables created so that the list can load all sales within a transaction. When the full list is loaded (both vars are equivalent), the page no longer has to re-render.
+  // Create state variables for the list of purchase lines
+  // Two variables created so that the list can load all purchases within a transaction. When the full list is loaded (both vars are equivalent), the page no longer has to re-render.
   const [purchaseOrderLines, setPurchaseOrderLines] = useState([]);
   const [prevPurchaseOrderLines, setPrevPurchaseOrderLines] = useState([-1]);
   const [recommendationLines, setRecommendationLines] = useState([]);
@@ -206,7 +215,7 @@ function PurchaseOrder() {
   useEffect(() => {
     // Post request to get the sales order lines from backend
     Axios.post("http://localhost:3001/getPurchaseOrder", {
-      // Pass the Sales Transaction ID
+      // Pass the Purchase Transaction ID
       PTID: localStorage.getItem("purchaseOrder"),
       session: localStorage.getItem("session")
     }).then((response) => {
