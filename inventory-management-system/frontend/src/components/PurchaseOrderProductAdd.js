@@ -14,6 +14,7 @@ const submit = () => {
     product_name: document.getElementById("product-selection").value,
     // Pass the quantity
     quantity: document.getElementById("quantity").value,
+    session: window.localStorage.getItem("session")
   }).then((response) => {
     // log the response (testing purposes only)
     // console.log(response);

@@ -40,6 +40,35 @@ const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
 var sessions = [];
 
 
+
+//=============================================================================
+//                                 verify-session()
+//  Function to check a session exists
+//
+//                        Parameters: N/A (No input parameters)
+//
+//                              Returns: SessionID (64 Chars)
+// 
+//=============================================================================
+app.post("/verify-session", (req, res) => {
+  res.set('Access-Control-Allow-Origin', 'https://localhost:3000'); 
+  var newSession = req.body.session;
+  console.log("User Session")
+  console.log(newSession);
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === newSession){
+      res.send("true");
+      return true;
+    }
+  }
+  res.send("false");
+  return false;
+});
+
+app.post("/log-frontend", (req, res) => {});
+
+
+
 //=============================================================================
 //                                databaseCreation()
 //  This function runs the db-creation.sql file. Database connection
@@ -540,7 +569,7 @@ app.post("/register", (req, res) => {
           res.send("Error");
         } else {
           var sessionid = generateSessionID();
-          sessions.push([sessionid, id]);
+          sessions.push([sessionid, id, 0]);
           console.log("New User Registered");
           console.log("Current Sessions");
           console.log(sessions);
@@ -622,7 +651,7 @@ app.post("/login", (req, res) => {
               console.log("Found Match")
               correct = true;
               db.query(
-                "SELECT Staff_ID from Staff WHERE Username = ?",
+                "SELECT Staff_ID, User_Privileges from Staff WHERE Username = ?",
                 [username],
                 (err, result) => {
                   if (err) {
@@ -631,6 +660,7 @@ app.post("/login", (req, res) => {
                   }
                   //console.log(result);
                   id = result;
+                  const privilege = id[0].User_Privileges;
                   id = id[0].Staff_ID;
                   console.log(id);
                   console.log("correct " + correct);
@@ -641,7 +671,7 @@ app.post("/login", (req, res) => {
                           res.send("Error");
                         } else {
                           var sessionid = generateSessionID();
-                          sessions.push([sessionid, id]);
+                          sessions.push([sessionid, id, privilege]);
                           console.log("New User Logged In");
                           console.log("Current Sessions");
                           console.log(sessions);
@@ -709,6 +739,16 @@ app.post("/logOut", (req, res) => {
 app.post("/getStockItems", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   getRecommendations()
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      id = sessions[i][1]
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID;",
     (err, result) => {
@@ -719,7 +759,7 @@ app.post("/getStockItems", (req, res) => {
       //console.log(result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1046,19 +1086,32 @@ app.post("/editProduct", (req, res) => {
 //=============================================================================
 app.post("/getPurchaseHistory", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS);
-  getRecommendations()
-  db.query(
-    "SELECT Purchase_Transactions.PTID, Purchase_Transactions.Order_Date, Purchase_Transactions.Delivery_Date, Staff.Username, SUM(Purchase_Orders.Qty * Product.Cost_Price) AS Value FROM Purchase_Transactions LEFT JOIN Purchase_Orders ON Purchase_Transactions.PTID = Purchase_Orders.PTID LEFT JOIN Staff ON Purchase_Transactions.Staff_ID = Staff.Staff_ID LEFT JOIN Product ON Product.SKU = Purchase_Orders.SKU GROUP BY Purchase_Transactions.PTID;",
-    (err, result) => {
-      if (err) {
-        //console.log(result);
-        console.log(err);
-        res.send({ err: err });
-      }
-      console.log(result);
-      res.send(result);
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 0){
+        id = sessions[i][1]
+      } 
     }
-  );
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
+    getRecommendations()
+    db.query(
+      "SELECT Purchase_Transactions.PTID, Purchase_Transactions.Order_Date, Purchase_Transactions.Delivery_Date, Staff.Username, SUM(Purchase_Orders.Qty * Product.Cost_Price) AS Value FROM Purchase_Transactions LEFT JOIN Purchase_Orders ON Purchase_Transactions.PTID = Purchase_Orders.PTID LEFT JOIN Staff ON Purchase_Transactions.Staff_ID = Staff.Staff_ID LEFT JOIN Product ON Product.SKU = Purchase_Orders.SKU GROUP BY Purchase_Transactions.PTID;",
+      (err, result) => {
+        if (err) {
+          //console.log(result);
+          console.log(err);
+          res.send({ err: err });
+        }
+        console.log(result);
+        res.send(result);
+      }
+    );
+  }
 });
 
 
@@ -1077,6 +1130,16 @@ app.post("/getPurchaseHistory", (req, res) => {
 //=============================================================================
 app.post("/getSalesHistory", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      id = sessions[i][1]
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   getRecommendations()
   db.query(
     "SELECT Sales_Transactions.STID, Sales_Transactions.Transaction_Date, Staff.Username, SUM(Sales_Orders.Qty * Product.Retail_Price) AS Value FROM Sales_Transactions LEFT JOIN Sales_Orders ON Sales_Transactions.STID = Sales_Orders.STID LEFT JOIN Staff ON Sales_Transactions.Staff_ID = Staff.Staff_ID LEFT JOIN Product ON Product.SKU = Sales_Orders.SKU GROUP BY Sales_Transactions.STID;",
@@ -1090,6 +1153,7 @@ app.post("/getSalesHistory", (req, res) => {
       res.send(result);
     }
   );
+  }
 });
 
 
@@ -1108,10 +1172,19 @@ app.post("/getSalesHistory", (req, res) => {
 //=============================================================================
 app.post("/addSalesOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
-  const staff_ID = req.body.Staff_ID;
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      id = sessions[i][1]
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "INSERT INTO Sales_Transactions (Staff_ID) VALUES (?);",
-    [staff_ID],
+    [id],
     (err, result) => {
       if (err) {
         //console.log(result);
@@ -1121,7 +1194,7 @@ app.post("/addSalesOrder", (req, res) => {
       console.log(result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1133,17 +1206,30 @@ app.post("/addSalesOrder", (req, res) => {
 //  CORS whitelisting prevents requests from external sources
 //  (only allows frontend address).
 //
-//                           Parameters:  Staff_ID (Integer)
+//                           Parameters:  session (Integer)
 //
 //                                  Returns: N/A
 // 
 //=============================================================================
 app.post("/addPurchaseOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
-  const staff_ID = req.body.Staff_ID;
+  var session = req.body.session;
+  var id = -1;
+  var date = new Date();
+  date.setMonth(date.getMonth() + 3);
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 0){
+        id = sessions[i][1]
+      } 
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
-    "INSERT INTO Purchase_Transactions (Staff_ID) VALUES (?);",
-    [staff_ID],
+    "INSERT INTO Purchase_Transactions (Staff_ID, Delivery_Date) VALUES (?, ?);",
+    [id, date],
     (err, result) => {
       if (err) {
         //console.log(result);
@@ -1154,6 +1240,7 @@ app.post("/addPurchaseOrder", (req, res) => {
       res.send(result);
     }
   );
+  }
 });
 
 
@@ -1173,6 +1260,16 @@ app.post("/addPurchaseOrder", (req, res) => {
 app.post("/getSalesOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const STID = req.body.STID;
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      id = sessions[i][1]
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "SELECT Sales_Orders.SOID, Sales_Orders.SKU, Product.Product_Name, Sales_Orders.Qty, Product.Retail_Price, Sales_Orders.Discount, SUM(Sales_Orders.Qty * Product.Retail_Price * (100 - Sales_Orders.Discount) /100) AS Value FROM Sales_Orders LEFT JOIN Product ON Sales_Orders.SKU = Product.SKU WHERE STID = ? GROUP BY SKU;",
     [STID],
@@ -1185,7 +1282,7 @@ app.post("/getSalesOrder", (req, res) => {
       //console.log("DATA: ", result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1206,6 +1303,18 @@ app.post("/getSalesOrder", (req, res) => {
 app.post("/getPurchaseOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const PTID = req.body.PTID;
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 0){
+        id = sessions[i][1]
+      } 
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "SELECT Purchase_Orders.POID, Purchase_Orders.SKU, Product.Product_Name, Purchase_Orders.Qty, Product.Cost_Price, SUM(Purchase_Orders.Qty * Product.Cost_Price) AS Value FROM Purchase_Orders LEFT JOIN Product ON Purchase_Orders.SKU = Product.SKU WHERE PTID = ? GROUP BY SKU;",
     [PTID],
@@ -1219,6 +1328,7 @@ app.post("/getPurchaseOrder", (req, res) => {
       res.send(result);
     }
   );
+}
 });
 
 
@@ -1237,9 +1347,21 @@ app.post("/getPurchaseOrder", (req, res) => {
 // 
 //=============================================================================
 app.post("/getPurchaseRecommendations", (req, res) => {
-  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS);
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 0){
+        id = sessions[i][1]
+      } 
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
-    "SELECT SKU, Recommended FROM Product WHERE isObsolete = 0;",
+    "SELECT SKU, Product_Name, MOQ, Recommended FROM Product WHERE isObsolete = 0;",
     (err, result) => {
       if (err) {
         //console.log(result);
@@ -1249,7 +1371,7 @@ app.post("/getPurchaseRecommendations", (req, res) => {
       //console.log("DATA: ", result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1273,6 +1395,16 @@ app.post("/addSalesOrderItem", (req, res) => {
   const STID = req.body.STID;
   const Qty = req.body.quantity;
   const Discount = req.body.discount;
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      id = sessions[i][1]
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "SELECT SKU FROM Product WHERE Product_Name LIKE ?;",
     [product_name],
@@ -1297,7 +1429,7 @@ app.post("/addSalesOrderItem", (req, res) => {
         }
       );
     }
-  );
+  );}
 });
 
 
@@ -1317,8 +1449,20 @@ app.post("/addSalesOrderItem", (req, res) => {
 app.post("/addPurchaseOrderItem", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const product_name = req.body.product_name;
-  const PTID = req.body.STID;
+  const PTID = req.body.PTID;
   const Qty = req.body.quantity;
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 0){
+        id = sessions[i][1]
+      } 
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "SELECT SKU FROM Product WHERE Product_Name = ?;",
     [product_name],
@@ -1343,7 +1487,7 @@ app.post("/addPurchaseOrderItem", (req, res) => {
         }
       );
     }
-  );
+  );}
 });
 
 
@@ -1364,6 +1508,16 @@ app.post("/getProductsFromOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const SKU = req.body.sku;
   const STID = req.body.stid;
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      id = sessions[i][1]
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   if (SKU == -1) {
     console.log("Error with sku");
     return "error";
@@ -1379,7 +1533,7 @@ app.post("/getProductsFromOrder", (req, res) => {
       //console.log(result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1400,6 +1554,18 @@ app.post("/getProductsFromPOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const SKU = req.body.sku;
   const PTID = req.body.PTID;
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 0){
+        id = sessions[i][1]
+      } 
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   if (SKU == -1) {
     console.log("Error with sku");
     return "error";
@@ -1415,7 +1581,7 @@ app.post("/getProductsFromPOrder", (req, res) => {
       //console.log(result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1436,7 +1602,16 @@ app.post("/getProductsFromPOrder", (req, res) => {
 app.post("/delSalesOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const SOID = req.body.SOID;
-  console.log(SOID);
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      id = sessions[i][1]
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "DELETE FROM Sales_Orders WHERE SOID = ?;",
     [SOID],
@@ -1448,7 +1623,7 @@ app.post("/delSalesOrder", (req, res) => {
       console.log(result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1465,10 +1640,21 @@ app.post("/delSalesOrder", (req, res) => {
 //                                Returns: N/A
 // 
 //=============================================================================
-app.post("/delSalesOrder", (req, res) => {
+app.post("/delPurchaseOrder", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
   const POID = req.body.POID;
-  console.log(POID);
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 0){
+        id = sessions[i][1]
+      } 
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "DELETE FROM Purchase_Orders WHERE POID = ?;",
     [POID],
@@ -1480,7 +1666,7 @@ app.post("/delSalesOrder", (req, res) => {
       console.log(result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1517,6 +1703,37 @@ app.post("/getSalesOrders", (req, res) => {
 
 
 //=============================================================================
+//                               post(/getPurchaseOrders)
+//  Function to handle getting all purchase order information
+//
+//  CORS whitelisting prevents requests from external sources
+//  (only allows frontend address).
+//
+//                                Parameters:  N/A
+//
+//                          Returns: Sales Orders (Array)
+// 
+//=============================================================================
+app.post("/getPurchaseOrders", (req, res) => {
+  res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  db.query(
+    "SELECT POID, Purchase_Orders.SKU, SUM(Qty * Cost_Price) As Value FROM Purchase_Orders LEFT JOIN Product ON Purchase_Orders.SKU = Product.SKU GROUP BY POID;",
+    (err, result) => {
+      if (err) {
+        //console.log(result);
+        console.log(err);
+        res.send({ err: err });
+      }
+      //console.log("DATA: ", result);
+      console.log(result);
+      res.send(result);
+    }
+  );
+});
+
+
+
+//=============================================================================
 //                               post(/getStaffList)
 //  Function to handle getting all staff information
 //
@@ -1530,6 +1747,18 @@ app.post("/getSalesOrders", (req, res) => {
 //=============================================================================
 app.post("/getStaffList", (req, res) => {
   res.set('Access-Control-Allow-Origin', FRONTEND_ADDRESS); 
+  var session = req.body.session;
+  var id = -1;
+  for(let i=0; i<sessions.length; i++){
+    if(sessions[i][0] === session){
+      if(sessions[i][2] > 1){
+        id = sessions[i][1]
+      } 
+    }
+  }
+  if(id === -1){
+    res.send([]);
+  } else {
   db.query(
     "SELECT Staff_ID, Username, User_Privileges, Is_Active FROM Staff",
     (err, result) => {
@@ -1540,7 +1769,7 @@ app.post("/getStaffList", (req, res) => {
       console.log(result);
       res.send(result);
     }
-  );
+  );}
 });
 
 
@@ -1841,6 +2070,7 @@ function getRecommendations(){
         });
       }
       console.log("Recommendations Updated");
+      return true;
     });
   });
 }
@@ -1882,5 +2112,6 @@ module.exports = {
   sqlPhrases,
   sqlInject,
   cssPhrases,
-  cssInject
+  cssInject,
+  getRecommendations
 }

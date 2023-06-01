@@ -12,6 +12,7 @@ const submit = () => {
   Axios.post(BACKEND_ADDRESS + "/addCategory", {
     category_name: document.getElementById("category-name").value,
     obsolete: document.getElementById("obsolete").value,
+    session: window.localStorage.getItem("session")
   }).then((response) => {
     console.log(response);
   });

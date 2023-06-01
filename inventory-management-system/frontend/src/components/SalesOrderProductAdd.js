@@ -16,6 +16,7 @@ const submit = () => {
     quantity: document.getElementById("quantity").value,
     // Pass the discount
     discount: document.getElementById("discount").value,
+    session: localStorage.getItem("session")
   }).then((response) => {
     // log the response (testing purposes only)
     // console.log(response);

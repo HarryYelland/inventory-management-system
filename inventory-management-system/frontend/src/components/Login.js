@@ -49,6 +49,7 @@ export default function Login() {
         setLoginStatus(response.data.message);
       } else {
         localStorage.setItem('user', usernameLog);
+        window.localStorage.setItem("username", usernameLog);
         if(response.data !== "Error"){
           localStorage.setItem('session', response.data);
           alert("Logged In")

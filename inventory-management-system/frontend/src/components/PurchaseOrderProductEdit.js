@@ -14,6 +14,7 @@ const submit = () => {
     product_name: document.getElementById("product-selection").value,
     // Pass the quantity
     quantity: document.getElementById("quantity").value,
+    session: localStorage.getItem("session")
   }).then((response) => {
     // log the response (testing purposes only)
     // console.log(response);
@@ -62,6 +63,7 @@ function PurchaseOrderProductEdit() {
       // Post SKU and Transaction ID so that product details can be loaded
       SKU: localStorage.getItem("sku"),
       PTID: localStorage.getItem("purchaseOrder"),
+      session: localStorage.getItem("session")
     }).then((response) => {
       // Log the response (testing purposes only)
       //console.log(response.data[0].Product_Name);

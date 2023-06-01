@@ -137,7 +137,7 @@ function SalesHistory() {
   useEffect(() => {
     // Post request to backend to load sales history
     Axios.post(BACKEND_ADDRESS + "/getSalesHistory", {
-      // No data required
+      session: localStorage.getItem("session")
     }).then((response) => {
       // If the list of sales has changed, update the list
       if (salesHistory.toString() !== prevSalesHistory.toString()) {

@@ -21,7 +21,7 @@ import "./App.css";
 
 import ReactDOM from "react-dom/client"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import PrivateRoute from "./PrivateRoute";
+import PrivateRoutes from "./PrivateRoutes";
 
 
 export default function App() {
@@ -32,23 +32,25 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/stocklist" element={<PrivateRoute><StockList /></PrivateRoute>} />
-          <Route path="/stocklist-add" element={<PrivateRoute><StockListAdd /></PrivateRoute>} />
-          <Route path="/stocklist-category" element={<PrivateRoute><StockListCategory /></PrivateRoute>} />
-          <Route path="/stocklist-edit" element={<PrivateRoute><StockListEdit /></PrivateRoute>} />
-          <Route path="/stocklist-view" element={<PrivateRoute><StockListView /></PrivateRoute>} />
-          <Route path="/sales-history" element={<PrivateRoute><SalesHistory /></PrivateRoute>} />
-          <Route path="/purchase-history" element={<PrivateRoute><PurchaseHistory/></PrivateRoute>}/>
-          <Route path="/purchase-order-add" element={<PurchaseOrder/>}/>
-          <Route path="/purchase-order-product-add" element={<PrivateRoute><PurchaseOrderProductAdd/></PrivateRoute>}/>
-          <Route path="/purchase-order-product-edit" element={<PrivateRoute><PurchaseOrderProductEdit/></PrivateRoute>}/>
-          <Route path="/sales-order-add" element={<PrivateRoute><SalesOrder/></PrivateRoute>}/>
-          <Route path="/sales-order-view" element={<PrivateRoute><SalesOrderView/></PrivateRoute>}/>
-          <Route path="/sales-order-product-add" element={<PrivateRoute><SalesOrderProductAdd/></PrivateRoute>}/>
-          <Route path="/sales-order-product-edit" element={<PrivateRoute><SalesOrderProductEdit/></PrivateRoute>}/>
-          <Route path="/reports" element={<PrivateRoute><Reports/></PrivateRoute>} />
-          <Route path="/settings" element={<PrivateRoute><Settings/></PrivateRoute>} />  
-          <Route path="*" element={<PrivateRoute><PageNotFound/></PrivateRoute>} />
+          <Route path="*" element={<PageNotFound/>} />
+          <Route path="/stocklist" element={<StockList />} />
+            <Route path="/stocklist-add" element={<StockListAdd />} />
+            <Route path="/stocklist-category" element={<StockListCategory />} />
+            <Route path="/stocklist-edit" element={<StockListEdit />} />
+            <Route path="/stocklist-view" element={<StockListView />} />
+            <Route path="/sales-history" element={<SalesHistory />} />
+            <Route path="/purchase-history" element={<PurchaseHistory/>}/>
+            <Route path="/purchase-order-add" element={<PurchaseOrder/>}/>
+            <Route path="/purchase-order-product-add" element={<PurchaseOrderProductAdd/>}/>
+            <Route path="/purchase-order-product-edit" element={<PurchaseOrderProductEdit/>}/>
+            <Route path="/sales-order-add" element={<SalesOrder/>}/>
+            <Route path="/sales-order-view" element={<SalesOrderView/>}/>
+            <Route path="/sales-order-product-add" element={<SalesOrderProductAdd/>}/>
+            <Route path="/sales-order-product-edit" element={<SalesOrderProductEdit/>}/>
+            <Route path="/reports" element={<Reports/>} />
+            <Route path="/settings" element={<Settings/>} />  
+          <Route element={<PrivateRoutes/>}>
+          </Route>          
         </Routes>
       </BrowserRouter>
 

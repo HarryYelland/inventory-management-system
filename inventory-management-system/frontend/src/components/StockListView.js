@@ -37,6 +37,7 @@ function StockListEdit() {
     Axios.post(BACKEND_ADDRESS + "/getProduct", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       sku: sku,
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       //console.log(response.data[0].Product_Name);
       localStorage.setItem("Product_Name", response.data[0].Product_Name);
@@ -54,6 +55,7 @@ function StockListEdit() {
     Axios.post(BACKEND_ADDRESS + "/getCategory", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       category_id: localStorage.getItem("Product_Category"),
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       console.log("Category_Name", response.data[0].Category_Name);
       localStorage.setItem("Category_Name", response.data[0].Category_Name);

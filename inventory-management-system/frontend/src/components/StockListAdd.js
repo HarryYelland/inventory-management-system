@@ -14,6 +14,7 @@ const submit = () => {
     retail_price: document.getElementById("retail-price").value,
     moq: document.getElementById("min-order-qty").value,
     obsolete: document.getElementById("obsolete").value,
+    session: window.localStorage.getItem("session")
   }).then((response) => {
     console.log(response);
   });

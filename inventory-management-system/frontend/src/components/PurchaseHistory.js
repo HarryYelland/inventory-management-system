@@ -18,18 +18,14 @@ function editOrder(){
   // Alert the user which order they will be viewing
   alert("View Purchase Order with ID: " + selected + ".");
   // Redirect to the sales order view page
-  window.location.href = "/purchase-order-edit";
+  window.location.href = "/purchase-order-add";
 }
 
 // Functon to create a new sales order
 function createOrder() {
 // POST request to create a new sales order
 Axios.post(BACKEND_ADDRESS + "/addPurchaseOrder", {
-  // Sets Staff ID to 1
-
-  // -->> CHANGE TO USERS ID WHEN AUTH TOKENS WORKING <<--
-  Staff_ID: 1,
-
+  session: window.localStorage.getItem("session")
 
 }).then((response) => {
   // If successful, set salesOrder to the new sales order ID ready for the next page
@@ -140,7 +136,7 @@ function PurchaseHistory() {
   useEffect(() => {
     // Post request to backend to load purchase history
     Axios.post(BACKEND_ADDRESS + "/getPurchaseHistory", {
-      // No data required
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       // If the list of purchases has changed, update the list
       if (purchaseHistory.toString() !== prevPurchaseHistory.toString()) {
@@ -175,15 +171,6 @@ function PurchaseHistory() {
               src={require("../icons/mathematics-sign-plus-outline-icon.png")}
               className="stock-list-add-button-image"
               alt="Add New Order"
-            />
-          </a>
-        </button>
-        <button className="stock-list-view-button">
-          <a onClick={viewOrder}>
-            <img
-              src={require("../icons/magnifier-glass-icon.png")}
-              className="stock-list-view-button-image"
-              alt="View Selected Product"
             />
           </a>
         </button>

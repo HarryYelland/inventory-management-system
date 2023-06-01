@@ -17,7 +17,8 @@ function activateUser() {
 
   if (window.confirm("Activate User (Staff ID: " + selected + ")?") === true) {
     Axios.post(BACKEND_ADDRESS + "/setStaffActive", {
-    Staff_ID: selected,
+      Staff_ID: selected,
+      session: window.localStorage.getItem("session"),
   }).then((response) => {
     console.log(response);
     alert("Activated User (Staff ID: " + selected + ")!");
@@ -32,9 +33,10 @@ function deactivateUser() {
   }
   giveSales();
 
-  if (window.confirm("De-activate User (Staff ID: " + selected + ")?") === true) {
+  if (window.confirm("deactivate User (Staff ID: " + selected + ")?") === true) {
     Axios.post(BACKEND_ADDRESS + "/setStaffDeactive", {
-    Staff_ID: selected,
+      session: window.localStorage.getItem("session"),
+      Staff_ID: selected,
   }).then((response) => {
     console.log(response);
     alert("De-activated User (Staff ID: " + selected + ")!");
@@ -50,7 +52,8 @@ function giveAdmin() {
 
   if (window.confirm("Give User (Staff ID: " + selected + ") System Admin Privileges? \nPlease note that this will give the user all permissions to purchase and edit other user's privileges.") === true) {
     Axios.post(BACKEND_ADDRESS + "/setStaffAdmin", {
-    Staff_ID: selected,
+      session: window.localStorage.getItem("session"),
+      Staff_ID: selected,
   }).then((response) => {
     console.log(response);
     alert("Gave System Admin Privileges to User (Staff ID: " + selected + ")!");
@@ -66,7 +69,8 @@ function givePurchasing() {
 
   if (window.confirm("Give User (Staff ID: " + selected + ") Purchasing Privileges?") === true) {
     Axios.post(BACKEND_ADDRESS + "/setStaffPurchasing", {
-    Staff_ID: selected,
+      session: window.localStorage.getItem("session"),
+      Staff_ID: selected,
   }).then((response) => {
     console.log(response);
     alert("Gave Purchasing Privileges to User (Staff ID: " + selected + ")!");
@@ -82,7 +86,8 @@ function giveSales() {
 
   if (window.confirm("Remove User (Staff ID: " + selected + ") Purchasing Privileges?") === true) {
     Axios.post(BACKEND_ADDRESS + "/setStaffSales", {
-    Staff_ID: selected,
+      session: window.localStorage.getItem("session"),
+      Staff_ID: selected,
   }).then((response) => {
     console.log(response);
     alert("Set Sales Privileges For User (Staff ID: " + selected + ")!");
@@ -115,9 +120,9 @@ var Row = (props) => {
     privilege_level = "System Admin";
   }
 
-  var activity = "Active";
+  var activity = "De-Active";
   if (Is_Active === 0) {
-    activity = "De-activated";
+    activity = "Active";
   }
 
   return (
@@ -165,7 +170,7 @@ function Settings() {
   const [prevStaffList, setPrevStaffList] = useState([-1]);
   useEffect(() => {
     Axios.post(BACKEND_ADDRESS + "/getStaffList", {
-            dbQuery: "",
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       if (staffList.toString() !== prevStaffList.toString()) {
         let getStaffList = [];
@@ -194,8 +199,8 @@ function Settings() {
         <button className="stock-list-button" onClick={giveAdmin}> Set System Admin Privilege </button>
       </div>
       <div className="stock-list-control-buttons">
-        <button className="stock-list-button" onClick={activateUser}> Activate User </button>
-        <button className="stock-list-button" onClick={deactivateUser}> De-activate User </button>
+        <button className="stock-list-button" onClick={deactivateUser}> Activate User </button>
+        <button className="stock-list-button" onClick={activateUser}> De-activate User </button>
       </div>
     </div>
   );

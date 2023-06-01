@@ -7,6 +7,14 @@ const BACKEND_ADDRESS = 'http://localhost:3001';
 
 // Function for the Reports page
 function Reports() {
+  Axios.post(BACKEND_ADDRESS + "/verify-session", {
+    session: window.localStorage.getItem("session"),
+  }).then((response) => {
+    console.log(response);
+    if(response.data === false){
+      window.location.href = "/";
+    }
+});
 
 // State variables to hold the stock report data
 const [stockReport, setStockReport] = useState([]);
@@ -62,6 +70,23 @@ useEffect(() => {
     });
 }, salesTransactionsReport);
 
+// State variables to hold the sales transactions report data
+const [purchaseTransactionReport, setPurchaseTransactionReport] = useState([]);
+const [prevPurchaseTransactionReport, setPrevPurchaseTransactionReport] = useState([-1]);
+
+// Use effect to get the sales transactions report data from the database, re-render until all data loaded (salestransactionsreport = prevsalestransactionsreport)
+useEffect(() => {
+  // Post request to get sales transactions report data
+    Axios.post(BACKEND_ADDRESS + "/getPurchaseOrders", {
+      // No post data needed as backend handles this
+    }).then((response) => {
+        // Check if reached end of data, add data to report
+        if(purchaseTransactionReport.toString() !== prevPurchaseTransactionReport.toString()){
+            setPrevPurchaseTransactionReport(purchaseTransactionReport);
+            setPurchaseTransactionReport(response.data);
+        }
+    });
+}, purchaseTransactionReport);
     
 
   return (
@@ -103,7 +128,16 @@ useEffect(() => {
       </CSVLink>;
 
     
-        <button className="stock-list-control-button">Purchase Report</button>
+      <CSVLink
+        data={purchaseTransactionReport}
+        filename={"purchase-transactions-report.csv"}
+        className="btn btn-primary"
+        target="_blank"
+      >
+    <div className="csvButton">
+    Purchase Transactions Report
+    </div>
+      </CSVLink>;
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ const submit = () => {
     quantity: document.getElementById("quantity").value,
     // Pass the discount
     discount: document.getElementById("discount").value,
+    session: window.localStorage.getItem("session")
   }).then((response) => {
     // log the response (testing purposes only)
     // console.log(response);
@@ -64,6 +65,7 @@ function SalesOrderProductEdit() {
       // Post SKU and Transaction ID so that product details can be loaded
       sku: localStorage.getItem("sku"),
       stid: localStorage.getItem("salesOrder"),
+      session: localStorage.getItem("session")
     }).then((response) => {
       // Log the response (testing purposes only)
       //console.log(response.data[0].Product_Name);

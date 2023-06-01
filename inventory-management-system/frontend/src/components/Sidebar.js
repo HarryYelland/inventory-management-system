@@ -10,10 +10,7 @@ function createSalesOrder() {
   if (window.confirm("Create a new Sales order?") === true) {
     // Sends a POST request to the backend to create a new sales order
     Axios.post(BACKEND_ADDRESS + "/addSalesOrder", {
-        // Sets Staff ID to 1
-
-        // -->> CHANGE TO USERS ID WHEN AUTH TOKENS WORKING <<--
-        Staff_ID: 1,
+        session: window.localStorage.getItem("session")
         
         // If successful, the response is logged to the console and the user is alerted that the sales order has been created
         }).then((response) => {
@@ -34,10 +31,7 @@ function createPurchaseOrder() {
   if (window.confirm("Create a new Purchase order?") === true) {
     // Sends a POST request to the backend to create a new purchase order
     Axios.post(BACKEND_ADDRESS + "/addPurchaseOrder", {
-      // Sets Staff ID to 1
-
-      // -->> CHANGE TO USERS ID WHEN AUTH TOKENS WORKING <<--
-      Staff_ID: 1,
+      session: window.localStorage.getItem("session")
 
       // If successful, the response is logged to the console and the user is alerted that the purchase order has been created
     }).then((response) => {
@@ -58,6 +52,7 @@ function LogOut(){
       session : localStorage.getItem("session")
     }).then((response) => {
       localStorage.setItem("session", "");
+      localStorage.setItem("username", "");
       window.location.href = "/";
     });
   }
@@ -65,10 +60,19 @@ function LogOut(){
 
 // Sidebar component
 function Sidebar() {
+  var username = window.localStorage.getItem("username")
+  var session = window.localStorage.getItem("session")
+  var accountMessage = "Log Out"
+  if(session === ""){
+    username = "";
+    accountMessage = "Go To Log In";
+  }
+
+  
   return (
     <div className="sidebar-body">      
       <div className="menu-item-boundbox">
-        <h2 className="username">Username</h2>
+        <h2 className="username">{username}</h2>
       </div>
       <div className="menu-item-boundbox">
         <a className="menu-item" href="/stocklist">
@@ -102,7 +106,7 @@ function Sidebar() {
       </div>
       <div className="menu-item-boundbox">
         <a className="menu-item logout" onClick={LogOut}>
-          Log Out
+          {accountMessage}
         </a>
       </div>
         <a href="/settings">

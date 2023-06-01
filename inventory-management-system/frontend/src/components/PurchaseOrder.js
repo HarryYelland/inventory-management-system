@@ -29,6 +29,7 @@ const deleteSelected = (event) => {
     Axios.post("http://localhost:3001/delPurchaseOrder", {
       // Pass the SOID
       POID: delSelected,
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       // if successful, alert user that product has been deleted
       alert("You have deleted Product : ", event.target.value.toString());
@@ -151,11 +152,13 @@ var Table = (props) => {
 // Function to handle dynamic table creation
 var Row2 = (props) => {
   // get each column of table
-  var { SKU, Recommendation } = props;
+  var { SKU, Recommendation, Product_Name, MOQ } = props;
   return (
     <tr>
       <td>{SKU}</td>
       <td>{Recommendation}</td>
+      <td>{Product_Name}</td>
+      <td>{MOQ}</td>
     </tr>
   );
 };
@@ -169,6 +172,8 @@ var Table2 = (props) => {
         <tr>
           <th>SKU</th>
           <th>Recommendation</th>
+          <th>Product Name</th>
+          <th>MOQ</th>
         </tr>
       </tbody>
       <tbody>
@@ -178,6 +183,8 @@ var Table2 = (props) => {
             key={`key-${index}`}
             SKU={row.SKU}
             Recommendation={row.Recommendation}
+            Product_Name={row.Product_Name}
+            MOQ={row.MOQ}
           />
         ))}
       </tbody>
@@ -201,6 +208,7 @@ function PurchaseOrder() {
     Axios.post("http://localhost:3001/getPurchaseOrder", {
       // Pass the Sales Transaction ID
       PTID: localStorage.getItem("purchaseOrder"),
+      session: localStorage.getItem("session")
     }).then((response) => {
       // if successful, log to console (TESTING PURPOSES)
       //console.log(response.data);
@@ -233,6 +241,7 @@ function PurchaseOrder() {
     useEffect(() => {
       // Post request to get the sales order lines from backend
       Axios.post("http://localhost:3001/getPurchaseRecommendations", {
+        session: window.localStorage.getItem("session")
       }).then((response) => {
         // if successful, log to console (TESTING PURPOSES)
         //console.log(response.data);
@@ -246,6 +255,8 @@ function PurchaseOrder() {
             getRecommendationLines.push({
               SKU: response.data[i].SKU,
               Recommendation: response.data[i].Recommended,
+              Product_Name: response.data[i].Product_Name,
+              MOQ: response.data[i].MOQ
             });
           }
           // Update the list of sales lines
@@ -262,6 +273,9 @@ function PurchaseOrder() {
         Purchase Order: {localStorage.getItem("purchaseOrder")}
       </h2>
       <Table data={prevPurchaseOrderLines} className="view" />
+      <br/>
+      <h2 className="stock-list-title">Recommendations</h2>
+      <br/>
       <Table2 data={prevRecommendationLines} className="recommendation" />
       <div className="stock-list-control-buttons">
         <button className="stock-list-add-button">

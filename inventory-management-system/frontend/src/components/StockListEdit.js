@@ -16,6 +16,7 @@ const submit = () => {
     retail_price: document.getElementById("retail-price").value,
     moq: document.getElementById("min-order-qty").value,
     obsolete: document.getElementById("obsolete").value,
+    session: window.localStorage.getItem("session")
   }).then((response) => {
     alert("Updated product");
     window.location.href = "/stocklist"
@@ -28,7 +29,7 @@ function StockListEdit() {
   useEffect(() => {
     Axios.post(BACKEND_ADDRESS + "/getCategories", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
-      dbQuery: "",
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       if (categoryItems.toString() !== prevCategoryItems.toString()) {
         let getCategoryItems = [];
@@ -49,6 +50,7 @@ function StockListEdit() {
     Axios.post(BACKEND_ADDRESS + "/getProduct", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       sku: localStorage.getItem("sku"),
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       //console.log(response.data[0].Product_Name);
       localStorage.setItem("Product_Name", response.data[0].Product_Name);
@@ -59,7 +61,7 @@ function StockListEdit() {
       localStorage.setItem("Product_MOQ", response.data[0].MOQ);
       localStorage.setItem("Product_Obsolete", response.data[0].isObsolete);
     });
-    Axios.post("http://localhost:3002/getCategory", {
+    Axios.post("http://localhost:3001/getCategory", {
       //SELECT Product.SKU, Product.Product_Name, Product.Stock_Qty, Purchase_Orders.Qty, Purchase_Transactions.Delivery_Date FROM Product LEFT JOIN Purchase_Orders ON Purchase_Orders.SKU = Product.SKU LEFT JOIN Purchase_Transactions ON Purchase_Transactions.PTID = Purchase_Orders.PTID WHERE Purchase_Transactions.Delivery_Date > CURRENT_DATE
       category_id: localStorage.getItem("Product_Category"),
     }).then((response) => {

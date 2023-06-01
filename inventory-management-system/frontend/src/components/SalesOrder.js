@@ -29,6 +29,7 @@ const deleteSelected = (event) => {
     Axios.post("http://localhost:3001/delSalesOrder", {
       // Pass the SOID
       SOID: delSelected,
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       // if successful, alert user that product has been deleted
       alert("You have deleted Product : ", event.target.value.toString());
@@ -161,6 +162,7 @@ function SalesOrder() {
     Axios.post("http://localhost:3001/getSalesOrder", {
       // Pass the Sales Transaction ID
       STID: localStorage.getItem("salesOrder"),
+      session: window.localStorage.getItem("session")
     }).then((response) => {
       // if successful, log to console (TESTING PURPOSES)
       //console.log(response.data);
